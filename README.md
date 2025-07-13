@@ -1,0 +1,2 @@
+# Trading-Konzept
+Trading-Konzept 📈📉
