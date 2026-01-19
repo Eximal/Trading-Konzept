@@ -1,6 +1,6 @@
 # Trading-Konzept
 Trading-Konzept 📈📉
-“Go to Issue — there you’ll find the current trading concept!”
+“Go to Issues — there you’ll find the current trading concept!”
 ![Uploading 85E19AF9-D718-4186-A2B6-16C512FFDBBF.PNG…]()
 
 
