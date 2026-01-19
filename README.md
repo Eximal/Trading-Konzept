@@ -45,8 +45,6 @@ Danke fürs Lesen, Mitdenken und Reflektieren.
 
 (JKU) https://zapper.xyz/token/base/0x4f3edeac4db4a2ceec7a0eeaa2255e0e7296b9e6/JKU/details?timeframeView=WEEK (Base Token) 
 
-https://linktr.ee/jakaral.united.estab.2024
-
 ![Uploading 85E19AF9-D718-4186-A2B6-16C512FFDBBF.PNG…]()
 
 https://github.com/Eximal/Trading-Konzept/issues
