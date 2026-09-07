@@ -1,6 +1,6 @@
 import { cookieStorage, createConfig, createStorage, http } from 'wagmi'
 import { base, bsc, mainnet, monad } from 'wagmi/chains'
-import { coinbaseWallet, injected, walletConnect } from 'wagmi/connectors'
+import { walletConnect } from 'wagmi/connectors'
 import { SUPPORTED_CHAINS } from './chains'
 
 export const APP_NAME = 'JKU Mining Protocol'
@@ -11,29 +11,28 @@ export const APP_DESCRIPTION =
 const walletConnectProjectId = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID
 
 /**
- * Wagmi config. WalletConnect is only registered when a project id is present,
- * so the app never crashes in environments without one (injected wallets still work).
+ * QR-only wallet configuration.
+ *
+ * We intentionally do not register injected or Coinbase connectors. That keeps
+ * this app from interacting with window.ethereum and avoids collisions between
+ * browser wallet extensions that try to redefine the same provider globals.
  */
 export const wagmiConfig = createConfig({
   chains: SUPPORTED_CHAINS,
-  connectors: [
-    injected({ shimDisconnect: true }),
-    coinbaseWallet({ appName: APP_NAME, appLogoUrl: `${APP_URL}/icon.svg` }),
-    ...(walletConnectProjectId
-      ? [
-          walletConnect({
-            projectId: walletConnectProjectId,
-            showQrModal: false,
-            metadata: {
-              name: APP_NAME,
-              description: APP_DESCRIPTION,
-              url: APP_URL,
-              icons: [`${APP_URL}/icons/icon-192.png`],
-            },
-          }),
-        ]
-      : []),
-  ],
+  connectors: walletConnectProjectId
+    ? [
+        walletConnect({
+          projectId: walletConnectProjectId,
+          showQrModal: true,
+          metadata: {
+            name: APP_NAME,
+            description: APP_DESCRIPTION,
+            url: APP_URL,
+            icons: [`${APP_URL}/icons/icon-192.png`],
+          },
+        }),
+      ]
+    : [],
   storage: createStorage({ storage: cookieStorage }),
   ssr: true,
   transports: {
