@@ -1,6 +1,8 @@
 import { AppHeader } from '@/components/app-header'
 import { BottomNav } from '@/components/bottom-nav'
+import { EcosystemLinks, MiningTrustNotice } from '@/components/ecosystem-links'
 import { MiningDashboard } from '@/components/mining-dashboard'
+
 
 export default function Page() {
   return (
@@ -17,6 +19,8 @@ export default function Page() {
           </p>
         </div>
         <MiningDashboard />
+        <MiningTrustNotice />
+        <EcosystemLinks />
       </main>
       <BottomNav />
     </div>
