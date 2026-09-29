@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useAccount } from 'wagmi'
 import { CYCLE_DURATION_MS } from '@/lib/mining'
 
@@ -58,9 +58,6 @@ export function useMiningCycle(rewardPerCycle: number) {
   const [record, setRecord] = useState<CycleRecord>(EMPTY)
   const [now, setNow] = useState(() => Date.now())
   const [pending, setPending] = useState<null | 'activate' | 'claim'>(null)
-  const rewardRef = useRef(rewardPerCycle)
-  rewardRef.current = rewardPerCycle
-
   // Load persisted state on mount / wallet switch (client-only to avoid SSR mismatch).
   useEffect(() => {
     setRecord(readRecord(key))
@@ -109,7 +106,7 @@ export function useMiningCycle(rewardPerCycle: number) {
     setPending('claim')
     try {
       // Contract hook-in point: await writeContractAsync({ ...claimRewards })
-      const claimed = rewardRef.current
+      const claimed = rewardPerCycle
       persist({
         startedAt: null,
         cyclesCompleted: record.cyclesCompleted + 1,
@@ -119,7 +116,7 @@ export function useMiningCycle(rewardPerCycle: number) {
     } finally {
       setPending(null)
     }
-  }, [persist, record, status])
+  }, [persist, record, rewardPerCycle, status])
 
   const reset = useCallback(() => persist(EMPTY), [persist])
 
