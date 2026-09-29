@@ -1,12 +1,8 @@
 import { Analytics } from '@vercel/analytics/next'
 import type { Metadata, Viewport } from 'next'
-import { Geist, Geist_Mono } from 'next/font/google'
 import { Web3Provider } from '@/components/providers/web3-provider'
 import { PwaInstaller } from '@/components/pwa-installer'
 import './globals.css'
-
-const _geistSans = Geist({ subsets: ['latin'] })
-const _geistMono = Geist_Mono({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://miner.jkuspot.com'),

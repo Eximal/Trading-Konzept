@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useAccount } from 'wagmi'
 import { CYCLE_DURATION_MS } from '@/lib/mining'
 
@@ -43,6 +43,25 @@ function writeRecord(key: string, record: CycleRecord) {
   }
 }
 
+async function syncParticipation(
+  address: string | undefined,
+  chainId: number | undefined,
+  action: 'sync' | 'activate' | 'claim',
+  startedAt?: number,
+) {
+  if (!address || !chainId) return
+  try {
+    await fetch('/api/participation', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ walletAddress: address, chainId, action, startedAt }),
+      keepalive: true,
+    })
+  } catch {
+    // The local cache remains the offline source of truth until the next sync.
+  }
+}
+
 /**
  * Drives the 24h mining cycle. Persisted per wallet + chain in localStorage so a
  * refresh, tab close, or PWA relaunch resumes the exact same countdown.
@@ -58,15 +77,14 @@ export function useMiningCycle(rewardPerCycle: number) {
   const [record, setRecord] = useState<CycleRecord>(EMPTY)
   const [now, setNow] = useState(() => Date.now())
   const [pending, setPending] = useState<null | 'activate' | 'claim'>(null)
-  const rewardRef = useRef(rewardPerCycle)
-  rewardRef.current = rewardPerCycle
-
   // Load persisted state on mount / wallet switch (client-only to avoid SSR mismatch).
   useEffect(() => {
-    setRecord(readRecord(key))
+    const localRecord = readRecord(key)
+    setRecord(localRecord)
     setNow(Date.now())
     setHydrated(true)
-  }, [key])
+    void syncParticipation(address, chainId, 'sync', localRecord.startedAt ?? undefined)
+  }, [address, chainId, key])
 
   // Single 1s ticker drives both the countdown and the live hashrate.
   useEffect(() => {
@@ -97,29 +115,30 @@ export function useMiningCycle(rewardPerCycle: number) {
     if (status !== 'idle') return
     setPending('activate')
     try {
-      // Contract hook-in point: await writeContractAsync({ ...activateRig })
-      persist({ ...record, startedAt: Date.now() })
+      const startedAt = Date.now()
+      persist({ ...record, startedAt })
+      void syncParticipation(address, chainId, 'activate', startedAt)
     } finally {
       setPending(null)
     }
-  }, [persist, record, status])
+  }, [address, chainId, persist, record, status])
 
   const claim = useCallback(async () => {
     if (status !== 'claimable') return 0
     setPending('claim')
     try {
-      // Contract hook-in point: await writeContractAsync({ ...claimRewards })
-      const claimed = rewardRef.current
+      const claimed = rewardPerCycle
       persist({
         startedAt: null,
         cyclesCompleted: record.cyclesCompleted + 1,
         totalClaimed: record.totalClaimed + claimed,
       })
+      void syncParticipation(address, chainId, 'claim')
       return claimed
     } finally {
       setPending(null)
     }
-  }, [persist, record, status])
+  }, [address, chainId, persist, record, rewardPerCycle, status])
 
   const reset = useCallback(() => persist(EMPTY), [persist])
 

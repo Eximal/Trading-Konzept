@@ -3,7 +3,7 @@ export const CYCLE_DURATION_MS = 24 * 60 * 60 * 1000
 /** Baseline rig output in MH/s before any multipliers. */
 export const BASE_HASHRATE = 12.5
 
-/** Base $JKU emission per full 24h cycle at 1.00x. */
+/** Base participation points per full 24h cycle at 1.00x. */
 export const BASE_REWARD_PER_CYCLE = 250
 
 export type BoostTier = {

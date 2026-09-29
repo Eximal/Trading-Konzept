@@ -46,7 +46,8 @@ export function useTokenBalances() {
   }, [address, chainId, entAddress, jkuAddress, nftAddress])
 
   const query = useReadContracts({
-    // biome-ignore lint/suspicious/noExplicitAny: heterogeneous multicall shape
+    // The three asset ABIs intentionally form one heterogeneous multicall list.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     contracts: contracts as any,
     allowFailure: true,
     query: {
@@ -57,25 +58,21 @@ export function useTokenBalances() {
 
   const balances = useMemo<Record<'jku' | 'ent' | 'nft', AssetBalance>>(() => {
     const results = query.data ?? []
-    let cursor = 0
-
-    const readErc20 = (configured: boolean) => {
+    const readErc20 = (offset: number, configured: boolean) => {
       if (!configured) return 0
-      const balance = results[cursor]?.result as bigint | undefined
-      const decimals = results[cursor + 1]?.result as number | undefined
-      cursor += 2
+      const balance = results[offset]?.result as bigint | undefined
+      const decimals = results[offset + 1]?.result as number | undefined
       if (balance === undefined) return 0
       return Number(formatUnits(balance, decimals ?? 18))
     }
 
-    const jku = readErc20(!!jkuAddress)
-    const ent = readErc20(!!entAddress)
+    const jku = readErc20(0, !!jkuAddress)
+    const entOffset = jkuAddress ? 2 : 0
+    const ent = readErc20(entOffset, !!entAddress)
 
-    let nft = 0
-    if (nftAddress) {
-      const balance = results[cursor]?.result as bigint | undefined
-      nft = balance === undefined ? 0 : Number(balance)
-    }
+    const nftOffset = entOffset + (entAddress ? 2 : 0)
+    const nftResult = nftAddress ? (results[nftOffset]?.result as bigint | undefined) : undefined
+    const nft = nftResult === undefined ? 0 : Number(nftResult)
 
     return {
       jku: { key: 'jku', symbol: 'JKU', amount: jku, configured: !!jkuAddress },
