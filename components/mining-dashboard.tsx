@@ -54,7 +54,7 @@ export function MiningDashboard() {
           role="status"
           className="rounded-xl border border-[#238636]/45 bg-[#238636]/10 p-3 text-xs text-[#3fb950]"
         >
-          Claimed {formatAmount(claimed)} JKU. Rig reset and ready for a new cycle.
+          Claimed {formatAmount(claimed)} participation points. Rig reset and ready for a new cycle.
         </div>
       )}
 

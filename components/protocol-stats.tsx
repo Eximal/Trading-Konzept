@@ -18,7 +18,7 @@ export function ProtocolStats({
 }) {
   const stats = [
     { label: 'Cycles mined', value: formatAmount(cyclesCompleted, 0) },
-    { label: 'Total claimed', value: `${formatAmount(totalClaimed)} JKU` },
+    { label: 'Points earned', value: formatAmount(totalClaimed) },
     { label: 'Effective rate', value: formatHashrate(effectiveHashrate) },
     {
       label: 'Network',

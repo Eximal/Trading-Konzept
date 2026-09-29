@@ -15,7 +15,7 @@ const STATUS_COPY: Record<RigStatus, { label: string; detail: string; tone: stri
   },
   mining: {
     label: 'Mining active',
-    detail: 'Hashing in progress. Rewards accrue every second.',
+    detail: 'Participation points accrue every second while your rig is active.',
     tone: 'bg-[#238636]/15 text-[#3fb950] ring-[#238636]/40',
   },
   claimable: {
@@ -163,7 +163,7 @@ export function RigStatusCard({
           </span>
           <p className="tabular mt-2 font-mono text-lg font-semibold text-[#f0f6fc]">
             {formatAmount(status === 'idle' ? estimatedReward : accruedReward)}
-            <span className="ml-1 text-xs font-normal text-muted-foreground">JKU</span>
+            <span className="ml-1 text-xs font-normal text-muted-foreground">PTS</span>
           </p>
           <p className="text-[11px] text-muted-foreground">
             {status === 'idle' ? 'Projected at' : 'Accrued at'} {multiplier.toFixed(2)}x
@@ -193,7 +193,7 @@ export function RigStatusCard({
             ) : (
               <Sparkles className="size-4" aria-hidden="true" />
             )}
-            Claim {formatAmount(accruedReward)} JKU
+            Claim {formatAmount(accruedReward)} points
           </button>
         ) : (
           <button
