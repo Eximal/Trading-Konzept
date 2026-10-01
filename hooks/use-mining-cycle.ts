@@ -43,22 +43,30 @@ function writeRecord(key: string, record: CycleRecord) {
   }
 }
 
+type ParticipationResponse = {
+  activeCycle?: { startedAt?: string | number | Date } | null
+  profile?: { cyclesCompleted?: number; points?: string | number } | null
+}
+
 async function syncParticipation(
   address: string | undefined,
   chainId: number | undefined,
   action: 'sync' | 'activate' | 'claim',
   startedAt?: number,
-) {
-  if (!address || !chainId) return
+): Promise<ParticipationResponse | null> {
+  if (!address || !chainId) return null
   try {
-    await fetch('/api/participation', {
+    const response = await fetch('/api/participation', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ walletAddress: address, chainId, action, startedAt }),
       keepalive: true,
     })
+    if (!response.ok) return null
+    return (await response.json()) as ParticipationResponse
   } catch {
     // The local cache remains the offline source of truth until the next sync.
+    return null
   }
 }
 
@@ -79,11 +87,23 @@ export function useMiningCycle(rewardPerCycle: number) {
   const [pending, setPending] = useState<null | 'activate' | 'claim'>(null)
   // Load persisted state on mount / wallet switch (client-only to avoid SSR mismatch).
   useEffect(() => {
+    let cancelled = false
     const localRecord = readRecord(key)
     setRecord(localRecord)
     setNow(Date.now())
     setHydrated(true)
-    void syncParticipation(address, chainId, 'sync', localRecord.startedAt ?? undefined)
+    void syncParticipation(address, chainId, 'sync', localRecord.startedAt ?? undefined).then((remote) => {
+      if (cancelled || !remote?.activeCycle?.startedAt) return
+      const remoteStartedAt = new Date(remote.activeCycle.startedAt).getTime()
+      if (!Number.isFinite(remoteStartedAt)) return
+      const synced = { ...localRecord, startedAt: remoteStartedAt }
+      setRecord(synced)
+      writeRecord(key, synced)
+      setNow(Date.now())
+    })
+    return () => {
+      cancelled = true
+    }
   }, [address, chainId, key])
 
   // Single 1s ticker drives both the countdown and the live hashrate.
@@ -117,7 +137,13 @@ export function useMiningCycle(rewardPerCycle: number) {
     try {
       const startedAt = Date.now()
       persist({ ...record, startedAt })
-      void syncParticipation(address, chainId, 'activate', startedAt)
+      const remote = await syncParticipation(address, chainId, 'activate', startedAt)
+      const authoritativeStart = remote?.activeCycle?.startedAt
+        ? new Date(remote.activeCycle.startedAt).getTime()
+        : startedAt
+      if (Number.isFinite(authoritativeStart) && authoritativeStart !== startedAt) {
+        persist({ ...record, startedAt: authoritativeStart })
+      }
     } finally {
       setPending(null)
     }

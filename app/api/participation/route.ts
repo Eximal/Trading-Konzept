@@ -10,6 +10,9 @@ const POINTS_PER_CYCLE = 100
 type Payload = { walletAddress?: string; chainId?: number; action?: 'sync' | 'activate' | 'claim'; startedAt?: number }
 
 function validate(payload: Payload) {
+  if (!payload.action || !['sync', 'activate', 'claim'].includes(payload.action)) {
+    throw new Error('Invalid participation action')
+  }
   const walletAddress = payload.walletAddress?.toLowerCase()
   if (!walletAddress || !ADDRESS.test(walletAddress)) throw new Error('Invalid wallet address')
   const chainId = Number(payload.chainId)
@@ -34,8 +37,11 @@ export async function POST(request: Request) {
     if (payload.action === 'activate') {
       const active = await db.select().from(participationCycles).where(and(eq(participationCycles.walletAddress, walletAddress), eq(participationCycles.status, 'active'))).limit(1)
       if (!active[0]) {
-        const startedAt = payload.startedAt && Number.isFinite(payload.startedAt) ? new Date(payload.startedAt) : now
-        await db.insert(participationCycles).values({ walletAddress, chainId, startedAt, status: 'active' })
+        const requestedStart = payload.startedAt && Number.isFinite(payload.startedAt) ? payload.startedAt : now.getTime()
+        if (requestedStart > now.getTime() + 30_000 || requestedStart < now.getTime() - 30_000) {
+          throw new Error('Invalid cycle start time')
+        }
+        await db.insert(participationCycles).values({ walletAddress, chainId, startedAt: now, status: 'active' })
         await db.insert(participationEvents).values({ walletAddress, chainId, eventType: 'cycle_started', metadata: { source: 'web' } })
       }
     }
