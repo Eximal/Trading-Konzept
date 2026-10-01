@@ -11,7 +11,7 @@ export const metadata: Metadata = {
     template: '%s | CloudMiner',
   },
   description:
-    'CloudMiner is a cyberpunk Proof-of-Participation mining dashboard for scaling rigs, earning CMR points, and managing wallet rewards.',
+    'CloudMiner is a transparent Proof-of-Participation protocol for community points, secure utility design, and a future MMORPG ecosystem.',
   applicationName: 'JKU Miner',
   manifest: '/manifest.json',
   appleWebApp: {
