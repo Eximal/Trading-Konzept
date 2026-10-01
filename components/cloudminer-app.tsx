@@ -9,6 +9,7 @@ import {
   Check,
   CircleDollarSign,
   Cpu,
+  FileText,
   Gauge,
   LayoutDashboard,
   LockKeyhole,
@@ -35,6 +36,7 @@ const navItems = [
   { label: 'Dashboard', icon: LayoutDashboard },
   { label: 'Shop', icon: Store },
   { label: 'Wallet', icon: Wallet },
+  { label: 'Whitepaper', icon: FileText },
 ]
 
 function formatTokens(value: number) {
@@ -134,6 +136,7 @@ export function CloudMinerApp() {
         {activeView === 'Dashboard' && <DashboardView isMining={isMining} setIsMining={setIsMining} tokens={tokens} balance={balance} totalHashrate={totalHashrate} claimRewards={claimRewards} setActiveView={setActiveView} />}
         {activeView === 'Shop' && <ShopView balance={balance} ownedUpgrades={ownedUpgrades} buyUpgrade={buyUpgrade} />}
         {activeView === 'Wallet' && <WalletView balance={balance} amount={withdrawalAmount} setAmount={setWithdrawalAmount} address={targetAddress} setAddress={setTargetAddress} network={network} setNetwork={setNetwork} withdraw={withdraw} />}
+        {activeView === 'Whitepaper' && <WhitepaperView />}
       </main>
 
       <nav className="fixed inset-x-4 bottom-4 z-30 flex justify-around rounded-2xl border border-white/[0.1] bg-[#111722]/90 p-2 shadow-2xl backdrop-blur-xl md:hidden" aria-label="Mobile navigation">
@@ -160,5 +163,34 @@ function Metric({ label, value, icon: Icon }: { label: string; value: string; ic
 function ShopView({ balance, ownedUpgrades, buyUpgrade }: { balance: number; ownedUpgrades: string[]; buyUpgrade: (name: string, price: number) => void }) { return <section><div className="mb-5 flex items-end justify-between"><div><p className="text-xs font-semibold uppercase tracking-[0.22em] text-cyan-300">Hardware market</p><h2 className="mt-2 text-2xl font-black text-white">Build your advantage</h2></div><div className="flex items-center gap-2 rounded-xl border border-white/[0.08] bg-white/[0.03] px-3 py-2 text-xs text-slate-400"><CircleDollarSign className="size-4 text-emerald-300" />{formatTokens(balance)} CMR</div></div><div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">{upgrades.map((item) => { const Icon = item.icon; const owned = ownedUpgrades.includes(item.name); const canBuy = balance >= item.price; return <article key={item.name} className="group rounded-2xl border border-white/[0.08] bg-white/[0.035] p-5 transition hover:-translate-y-1 hover:border-cyan-300/30"><div className={`mb-8 flex size-12 items-center justify-center rounded-2xl ${item.tone === 'cyan' ? 'bg-cyan-300/10 text-cyan-300' : item.tone === 'green' ? 'bg-emerald-300/10 text-emerald-300' : item.tone === 'violet' ? 'bg-violet-300/10 text-violet-300' : 'bg-amber-300/10 text-amber-300'}`}><Icon className="size-6" /></div><p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">{item.type}</p><h3 className="mt-2 text-lg font-bold text-white">{item.name}</h3><div className="mt-5 flex flex-col gap-3 border-y border-white/[0.07] py-4 text-xs"><span className="flex justify-between text-slate-500">Hashrate <b className="text-emerald-300">{item.boost}</b></span><span className="flex justify-between text-slate-500">Energy <b className="text-slate-300">{item.energy}</b></span></div><div className="mt-5 flex items-center justify-between"><span className="font-bold text-white">{item.price} <span className="text-xs font-medium text-slate-500">CMR</span></span><Button size="sm" disabled={owned || !canBuy} onClick={() => buyUpgrade(item.name, item.price)} className="rounded-lg bg-white/10 text-white hover:bg-cyan-300 hover:text-slate-950">{owned ? <><Check data-icon="inline-start" />Owned</> : 'Buy upgrade'}</Button></div></article> })}</div></section> }
 
 function WalletView({ balance, amount, setAmount, address, setAddress, network, setNetwork, withdraw }: { balance: number; amount: string; setAmount: (value: string) => void; address: string; setAddress: (value: string) => void; network: string; setNetwork: (value: string) => void; withdraw: () => void }) { return <section className="mx-auto grid max-w-5xl gap-5 lg:grid-cols-[0.85fr_1.15fr]"><div className="rounded-3xl border border-cyan-300/20 bg-gradient-to-br from-cyan-300/15 via-white/[0.04] to-transparent p-6 sm:p-8"><div className="flex items-center justify-between"><p className="text-xs font-semibold uppercase tracking-[0.2em] text-cyan-200">Available balance</p><Wallet className="size-5 text-cyan-300" /></div><p className="mt-10 text-4xl font-black text-white">{formatTokens(balance)} <span className="text-sm font-bold text-cyan-300">CMR</span></p><p className="mt-2 text-xs text-slate-500">Rewards available to withdraw</p><div className="mt-10 flex items-center gap-2 text-xs text-slate-400"><LockKeyhole className="size-3.5 text-emerald-300" /> Non-custodial wallet layer</div></div><div className="rounded-3xl border border-white/[0.08] bg-white/[0.035] p-6 sm:p-8"><div className="mb-6"><p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Withdraw rewards</p><h2 className="mt-2 text-xl font-bold text-white">Send CMR to your wallet</h2></div><div className="flex flex-col gap-4"><label className="text-xs font-semibold text-slate-400">Target wallet address<input value={address} onChange={(event) => setAddress(event.target.value)} placeholder="0x... or wallet address" className="mt-2 h-12 w-full rounded-xl border border-white/[0.09] bg-[#0b0f17] px-4 text-sm text-white outline-none placeholder:text-slate-700 focus:border-cyan-300/50" /></label><label className="text-xs font-semibold text-slate-400">Network<select value={network} onChange={(event) => setNetwork(event.target.value)} className="mt-2 h-12 w-full rounded-xl border border-white/[0.09] bg-[#0b0f17] px-4 text-sm text-white outline-none focus:border-cyan-300/50"><option>Ethereum</option><option>Polygon</option><option>Solana</option></select></label><label className="text-xs font-semibold text-slate-400">Amount<input value={amount} onChange={(event) => setAmount(event.target.value)} type="number" min="0" step="0.01" placeholder="0.00" className="mt-2 h-12 w-full rounded-xl border border-white/[0.09] bg-[#0b0f17] px-4 text-sm text-white outline-none placeholder:text-slate-700 focus:border-cyan-300/50" /></label><Button onClick={withdraw} className="h-12 rounded-xl bg-cyan-300 font-bold text-slate-950 hover:bg-cyan-200"><ArrowDownToLine data-icon="inline-start" />Withdraw</Button><p className="flex items-center gap-2 text-[11px] text-slate-600"><LockKeyhole className="size-3" /> Withdrawals are simulated for Proof-of-Participation points.</p></div></div></section> }
+
+function WhitepaperView() {
+  return (
+    <article className="mx-auto flex max-w-5xl flex-col gap-5">
+      <header className="rounded-3xl border border-cyan-300/20 bg-gradient-to-br from-cyan-300/10 via-white/[0.04] to-transparent p-6 sm:p-9">
+        <p className="text-xs font-bold uppercase tracking-[0.25em] text-cyan-300">CloudMiner protocol / v1.0</p>
+        <h2 className="mt-3 text-3xl font-black tracking-tight text-white sm:text-5xl">Proof of Participation</h2>
+        <p className="mt-4 max-w-3xl text-sm leading-7 text-slate-400 sm:text-base">A transparent participation layer for the Jakaral United ecosystem: activity becomes measurable points, points create utility, and utility is designed to flow back into the community.</p>
+        <div className="mt-6 rounded-2xl border border-amber-300/20 bg-amber-300/[0.06] p-4 text-xs leading-6 text-amber-100/80"><strong className="text-amber-200">Important:</strong> CMR is currently an in-app participation point. It is not proof of ownership, a deposit, an investment product, or a promise of future financial value. Any future blockchain deployment requires a separate audit, legal review, published contract, and explicit user consent.</div>
+      </header>
+      <div className="grid gap-5 lg:grid-cols-2">
+        <WhitepaperSection title="1. Entstehung des Coins" eyebrow="Origin" text="CMR entsteht nicht durch echte Geräte- oder Browser-Rechenleistung. Ein serverseitig validierter Mining-Zyklus zeichnet freiwillige Teilnahme auf und vergibt eine nachvollziehbare Punktmenge. Die Basisrate, Zyklusdauer, Streaks und Multiplikatoren werden als öffentliche Produktregeln dokumentiert und können nicht heimlich aus dem Client verändert werden." />
+        <WhitepaperSection title="2. Technische Umsetzung" eyebrow="Implementation" text="Die App trennt Oberfläche, API und Datenmodell. Der Server prüft Session oder Wallet-Kontext, Startzeit, Zyklusstatus und Limits. Ereignisse werden unveränderlich protokolliert; Eingaben werden validiert, Auszahlungen bleiben bis zu einer späteren, geprüften On-Chain-Phase deaktiviert. Wallet-Adressen werden niemals als private Schlüssel behandelt." />
+        <WhitepaperSection title="3. Sicherheitskonformes Verhalten" eyebrow="Security" text="Keine Seed-Phrase und kein Private Key wird abgefragt oder gespeichert. Signaturen dürfen nur eine Wallet kontrollieren, nicht automatisch Werte übertragen. Rate-Limits, serverseitige Zeit, Replay-Schutz, Moderationspfade und transparente Fehler werden vor jeder öffentlichen Belohnungsfunktion ergänzt. Abhängigkeiten und Smart Contracts werden vor Einsatz geprüft und auditiert." />
+        <WhitepaperSection title="4. Kreislauf und Nutzen" eyebrow="Utility loop" text="Teilnahme erzeugt Punkte. Punkte können innerhalb der App Status, kosmetische Freischaltungen, Community-Zugänge oder Rabatte auf klar beschriebene Leistungen ermöglichen. Einnahmen und Ressourcen des Ökosystems sollten nachvollziehbar dokumentiert werden; keine Funktion darf eine Rendite oder einen Marktpreis versprechen." />
+        <WhitepaperSection title="5. MMORPG-Vision" eyebrow="Game layer" text="Das MMORPG kann die gleiche Identität und den gleichen Fortschritt nutzen: Spieler erkunden Regionen, erfüllen kooperative Quests, bauen Gemeinschaften auf und sammeln nicht-finanzielle Fortschrittswerte. CMR kann später für kosmetische Gegenstände, Housing-Dekoration, Crafting-Rezepte, Emotes, Mount-Skins oder saisonale Events eingesetzt werden." />
+        <WhitepaperSection title="6. Faire In-Game-Ökonomie" eyebrow="Game economy" text="Gameplay bleibt auch ohne Kauf vollständig spielbar. Gegenstände werden nach Seltenheit, Nutzwert und Herkunft gekennzeichnet; Zufallsboxen mit bezahltem Vorteil werden vermieden. Handel, falls aktiviert, erhält Gebührenlimits, Betrugsschutz, Rückerstattungsregeln und eine klare Trennung zwischen kosmetischem Besitz und echtem Vermögenswert." />
+      </div>
+      <section className="rounded-3xl border border-white/[0.08] bg-white/[0.035] p-6 sm:p-8">
+        <p className="text-xs font-bold uppercase tracking-[0.22em] text-cyan-300">Roadmap</p>
+        <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">{['Foundation: PoP, Datenmodell, Regeln', 'Trust: Auth, Anti-Abuse, Audit logs', 'World: MMORPG prototype, quests, items', 'Utility: geprüfte Integrationen, Governance'].map((phase, index) => <div key={phase} className="rounded-2xl border border-white/[0.08] bg-[#0b0f17]/70 p-4"><p className="text-xs font-bold text-emerald-300">0{index + 1}</p><p className="mt-3 text-sm font-semibold leading-6 text-slate-200">{phase}</p></div>)}</div>
+      </section>
+    </article>
+  )
+}
+
+function WhitepaperSection({ eyebrow, title, text }: { eyebrow: string; title: string; text: string }) {
+  return <section className="rounded-3xl border border-white/[0.08] bg-white/[0.035] p-6"><p className="text-[10px] font-bold uppercase tracking-[0.22em] text-slate-500">{eyebrow}</p><h3 className="mt-2 text-lg font-bold text-white">{title}</h3><p className="mt-3 text-sm leading-7 text-slate-400">{text}</p></section>
+}
 
 export default CloudMinerApp
