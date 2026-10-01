@@ -7,11 +7,11 @@ import './globals.css'
 export const metadata: Metadata = {
   metadataBase: new URL('https://miner.jkuspot.com'),
   title: {
-    default: 'JKU Mining Protocol',
-    template: '%s | JKU Mining Protocol',
+    default: 'CloudMiner',
+    template: '%s | CloudMiner',
   },
   description:
-    'Multi-chain mining rig for the JKU protocol on Base, Monad and BNB Chain. Run 24 hour cycles and boost hashrate with $JKU, $ENT and NFT holdings.',
+    'CloudMiner is a cyberpunk Proof-of-Participation mining dashboard for scaling rigs, earning CMR points, and managing wallet rewards.',
   applicationName: 'JKU Miner',
   manifest: '/manifest.json',
   appleWebApp: {
