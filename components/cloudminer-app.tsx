@@ -25,10 +25,10 @@ import { Button } from '@/components/ui/button'
 import { WalletButton } from '@/components/wallet-button'
 
 const upgrades = [
-  { name: 'RTX Cluster', type: 'GPU', boost: '+18.4 MH/s', energy: '240 W', price: 42, icon: Cpu, tone: 'cyan' },
-  { name: 'Antminer J9', type: 'ASIC', boost: '+36.0 MH/s', energy: '680 W', price: 86, icon: Pickaxe, tone: 'green' },
-  { name: 'Liquid Loop', type: 'COOLING', boost: '+8.2 MH/s', energy: '90 W', price: 28, icon: Snowflake, tone: 'violet' },
-  { name: 'Quantum Core', type: 'GPU', boost: '+62.5 MH/s', energy: '1.1 kW', price: 150, icon: Sparkles, tone: 'amber' },
+  { name: 'RTX 4090 Rig', type: 'GPU', boost: '+25.0 MH/s', energy: '350 W', price: 100, icon: Cpu, tone: 'cyan' },
+  { name: 'Antminer S19 Pro', type: 'ASIC', boost: '+110.0 MH/s', energy: '3.25 kW', price: 500, icon: Pickaxe, tone: 'green' },
+  { name: 'Liquid Loop', type: 'COOLING', boost: '+8.0 MH/s', energy: '90 W', price: 75, icon: Snowflake, tone: 'violet' },
+  { name: 'Quantum Server Node', type: 'NODE', boost: '+500.0 MH/s', energy: '5 kW', price: 2000, icon: Sparkles, tone: 'amber' },
 ]
 
 const navItems = [
@@ -43,29 +43,30 @@ function formatTokens(value: number) {
 
 export function CloudMinerApp() {
   const [activeView, setActiveView] = useState('Dashboard')
-  const [isMining, setIsMining] = useState(true)
-  const [tokens, setTokens] = useState(12842.4921)
-  const [balance, setBalance] = useState(248.42)
+  const [isMining, setIsMining] = useState(false)
+  const [tokens, setTokens] = useState(0)
+  const [balance, setBalance] = useState(0)
   const [withdrawalAmount, setWithdrawalAmount] = useState('')
   const [targetAddress, setTargetAddress] = useState('')
   const [network, setNetwork] = useState('Ethereum')
-  const [ownedUpgrades, setOwnedUpgrades] = useState<string[]>(['RTX Cluster'])
+  const [ownedUpgrades, setOwnedUpgrades] = useState<string[]>([])
   const [notice, setNotice] = useState('')
+
+  const totalHashrate = useMemo(() => {
+    const base = 10
+    const boost = upgrades.filter((item) => ownedUpgrades.includes(item.name)).reduce((sum, item) => sum + Number.parseFloat(item.boost), 0)
+    return base + boost
+  }, [ownedUpgrades])
 
   useEffect(() => {
     if (!isMining) return
     const timer = window.setInterval(() => {
-      setTokens((current) => current + 0.0028)
-      setBalance((current) => current + 0.0028)
+      const earnedPerSecond = totalHashrate * 0.0001
+      setTokens((current) => current + earnedPerSecond)
+      setBalance((current) => current + earnedPerSecond)
     }, 1000)
     return () => window.clearInterval(timer)
-  }, [isMining])
-
-  const totalHashrate = useMemo(() => {
-    const base = 42.8
-    const boost = upgrades.filter((item) => ownedUpgrades.includes(item.name)).reduce((sum, item) => sum + Number.parseFloat(item.boost), 0)
-    return base + boost
-  }, [ownedUpgrades])
+  }, [isMining, totalHashrate])
 
   function buyUpgrade(name: string, price: number) {
     if (ownedUpgrades.includes(name) || balance < price) return
