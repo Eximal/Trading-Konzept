@@ -1,7 +1,7 @@
 'use client'
 
 import { Download, X } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 type BeforeInstallPromptEvent = Event & {
   prompt: () => Promise<void>
@@ -15,6 +15,7 @@ const DISMISS_KEY = 'jku:install-dismissed'
  */
 export function PwaInstaller() {
   const [installEvent, setInstallEvent] = useState<BeforeInstallPromptEvent | null>(null)
+  const installEventRef = useRef<BeforeInstallPromptEvent | null>(null)
   const [visible, setVisible] = useState(false)
 
   useEffect(() => {
@@ -29,18 +30,26 @@ export function PwaInstaller() {
   useEffect(() => {
     const onPrompt = (event: Event) => {
       event.preventDefault()
-      setInstallEvent(event as BeforeInstallPromptEvent)
+      const promptEvent = event as BeforeInstallPromptEvent
+      installEventRef.current = promptEvent
+      setInstallEvent(promptEvent)
       if (window.localStorage.getItem(DISMISS_KEY) !== '1') setVisible(true)
     }
     const onInstalled = () => {
       setVisible(false)
+      installEventRef.current = null
       setInstallEvent(null)
+    }
+    const onInstallRequest = () => {
+      if (installEventRef.current) setVisible(true)
     }
     window.addEventListener('beforeinstallprompt', onPrompt)
     window.addEventListener('appinstalled', onInstalled)
+    window.addEventListener('jku:request-install', onInstallRequest)
     return () => {
       window.removeEventListener('beforeinstallprompt', onPrompt)
       window.removeEventListener('appinstalled', onInstalled)
+      window.removeEventListener('jku:request-install', onInstallRequest)
     }
   }, [])
 
@@ -72,6 +81,7 @@ export function PwaInstaller() {
               await installEvent.prompt()
               const choice = await installEvent.userChoice
               if (choice.outcome !== 'accepted') dismiss()
+              installEventRef.current = null
               setInstallEvent(null)
               setVisible(false)
             }}
