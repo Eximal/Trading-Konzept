@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react'
 import {
   ArrowDownToLine,
   ArrowUpRight,
+  Download,
   BarChart3,
   BatteryCharging,
   Check,
@@ -115,6 +116,15 @@ export function CloudMinerApp() {
             })}
           </nav>
           <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => window.dispatchEvent(new Event('jku:request-install'))}
+              className="flex items-center gap-2 rounded-xl border border-cyan-300/25 bg-cyan-300/10 px-2.5 py-2 text-xs font-semibold text-cyan-200 transition hover:border-cyan-300/50 hover:bg-cyan-300/15 sm:px-3"
+              aria-label="CloudMiner installieren"
+            >
+              <Download className="size-3.5" aria-hidden="true" />
+              <span className="hidden sm:inline">Install app</span>
+            </button>
             <div className="hidden sm:block"><WalletButton /></div>
             <button type="button" className="flex size-10 items-center justify-center rounded-xl border border-white/[0.08] text-slate-400 md:hidden" aria-label="Open menu"><Menu className="size-5" /></button>
           </div>
