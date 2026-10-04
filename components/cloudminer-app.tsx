@@ -197,6 +197,11 @@ function WhitepaperView() {
         <p className="text-xs font-bold uppercase tracking-[0.22em] text-cyan-300">Roadmap</p>
         <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">{['Foundation: PoP, Datenmodell, Regeln', 'Trust: Auth, Anti-Abuse, Audit logs', 'World: MMORPG prototype, quests, items', 'Utility: geprüfte Integrationen, Governance'].map((phase, index) => <div key={phase} className="rounded-2xl border border-white/[0.08] bg-[#0b0f17]/70 p-4"><p className="text-xs font-bold text-emerald-300">0{index + 1}</p><p className="mt-3 text-sm font-semibold leading-6 text-slate-200">{phase}</p></div>)}</div>
       </section>
+      <footer className="rounded-3xl border border-cyan-300/15 bg-cyan-300/[0.04] p-5 text-xs leading-6 text-slate-400 sm:p-6">
+        <p className="font-semibold text-slate-200">Copyright und Urheberhinweis</p>
+        <p className="mt-2">© 2024–2026 Jakaral United Estab. Alle Rechte vorbehalten. CloudMiner, das Proof-of-Participation-Konzept, die App-Architektur, Texte und die geplante Spielwelt sind Entwicklungsarbeiten von Marco Budo Schenk, CEO und Developer von Jakaral United Estab.</p>
+        <p className="mt-2">Technische Assistenz durch KI ändert nichts an der menschlichen Verantwortung, Urheberschaft oder den Rechten des Projektträgers. Nutzung, Vervielfältigung oder kommerzielle Verwertung nur mit ausdrücklicher Genehmigung. Dieser Hinweis ist eine Produktinformation und ersetzt keine rechtliche Marken- oder Urheberrechtsberatung.</p>
+      </footer>
     </article>
   )
 }
