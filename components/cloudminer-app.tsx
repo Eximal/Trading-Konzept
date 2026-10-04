@@ -9,6 +9,7 @@ import {
   BatteryCharging,
   Check,
   CircleDollarSign,
+  Copy,
   Cpu,
   FileText,
   Gauge,
@@ -55,6 +56,8 @@ export function CloudMinerApp() {
   const [ownedUpgrades, setOwnedUpgrades] = useState<string[]>([])
   const [notice, setNotice] = useState('')
   const [dropClaimed, setDropClaimed] = useState(false)
+  const [inviteCopied, setInviteCopied] = useState(false)
+  const inviteLink = useMemo(() => `${typeof window !== 'undefined' ? window.location.origin : 'https://cloudminer.app'}?ref=JAKARAL-2024`, [])
 
   const totalHashrate = useMemo(() => {
     const base = 10
@@ -83,6 +86,17 @@ export function CloudMinerApp() {
     setNotice(`${formatTokens(tokens)} CMR transferred to your wallet.`)
     setBalance((current) => current + tokens)
     setTokens(0)
+  }
+
+  async function copyInviteLink() {
+    try {
+      await navigator.clipboard.writeText(inviteLink)
+      setInviteCopied(true)
+      setNotice('Einladungslink kopiert. Beide Seiten bleiben kostenlos.')
+      window.setTimeout(() => setInviteCopied(false), 2200)
+    } catch {
+      setNotice('Link konnte nicht kopiert werden. Bitte manuell auswählen.')
+    }
   }
 
   function withdraw() {
@@ -144,7 +158,7 @@ export function CloudMinerApp() {
 
         {notice && <div role="status" className="mb-5 flex items-center justify-between rounded-xl border border-cyan-300/20 bg-cyan-300/[0.07] px-4 py-3 text-sm text-cyan-100"><span>{notice}</span><button type="button" onClick={() => setNotice('')} className="text-cyan-300">Dismiss</button></div>}
 
-        {activeView === 'Dashboard' && <DashboardView isMining={isMining} setIsMining={setIsMining} tokens={tokens} balance={balance} totalHashrate={totalHashrate} claimRewards={claimRewards} setActiveView={setActiveView} dropClaimed={dropClaimed} claimDrop={() => { setDropClaimed(true); setBalance((current) => current + 10); setNotice('Daily utility drop claimed: +10 CMR participation points.') }} />}
+        {activeView === 'Dashboard' && <DashboardView isMining={isMining} setIsMining={setIsMining} tokens={tokens} balance={balance} totalHashrate={totalHashrate} claimRewards={claimRewards} setActiveView={setActiveView} dropClaimed={dropClaimed} claimDrop={() => { setDropClaimed(true); setBalance((current) => current + 10); setNotice('Daily utility drop claimed: +10 CMR participation points.') }} inviteLink={inviteLink} inviteCopied={inviteCopied} copyInviteLink={copyInviteLink} />}
         {activeView === 'Shop' && <ShopView balance={balance} ownedUpgrades={ownedUpgrades} buyUpgrade={buyUpgrade} />}
         {activeView === 'Wallet' && <WalletView balance={balance} amount={withdrawalAmount} setAmount={setWithdrawalAmount} address={targetAddress} setAddress={setTargetAddress} network={network} setNetwork={setNetwork} withdraw={withdraw} />}
         {activeView === 'Whitepaper' && <WhitepaperView />}
@@ -157,7 +171,7 @@ export function CloudMinerApp() {
   )
 }
 
-function DashboardView({ isMining, setIsMining, tokens, balance, totalHashrate, claimRewards, setActiveView, dropClaimed, claimDrop }: { isMining: boolean; setIsMining: (value: boolean) => void; tokens: number; balance: number; totalHashrate: number; claimRewards: () => void; setActiveView: (value: string) => void; dropClaimed: boolean; claimDrop: () => void }) {
+function DashboardView({ isMining, setIsMining, tokens, balance, totalHashrate, claimRewards, setActiveView, dropClaimed, claimDrop, inviteLink, inviteCopied, copyInviteLink }: { isMining: boolean; setIsMining: (value: boolean) => void; tokens: number; balance: number; totalHashrate: number; claimRewards: () => void; setActiveView: (value: string) => void; dropClaimed: boolean; claimDrop: () => void; inviteLink: string; inviteCopied: boolean; copyInviteLink: () => void }) {
   return <div className="grid gap-5 lg:grid-cols-[1.6fr_1fr]">
     <section className="relative overflow-hidden rounded-3xl border border-cyan-300/15 bg-white/[0.035] p-5 shadow-[0_0_55px_rgba(34,211,238,0.05)] sm:p-7">
       <div className="absolute -right-24 -top-24 size-64 rounded-full bg-cyan-300/10 blur-3xl" />
@@ -166,6 +180,7 @@ function DashboardView({ isMining, setIsMining, tokens, balance, totalHashrate, 
       <div className="mt-7 flex flex-col gap-3 sm:flex-row"><Button onClick={() => setIsMining(!isMining)} className="h-12 flex-1 rounded-xl bg-emerald-400 font-bold text-slate-950 hover:bg-emerald-300"><Power data-icon="inline-start" />{isMining ? 'Stop mining' : 'Start mining'}</Button><Button onClick={claimRewards} variant="outline" className="h-12 flex-1 rounded-xl border-cyan-300/30 bg-transparent font-bold text-cyan-200 hover:bg-cyan-300/10"><ArrowDownToLine data-icon="inline-start" />Claim rewards</Button></div>
     </section>
     <section className="rounded-3xl border border-amber-300/20 bg-amber-300/[0.05] p-5 sm:p-7"><div className="flex items-start justify-between gap-4"><div><p className="text-xs font-semibold uppercase tracking-[0.22em] text-amber-200">Daily utility drop</p><p className="mt-2 text-lg font-bold text-white">Community supply crate</p><p className="mt-2 text-xs leading-5 text-slate-400">A small participation bonus for returning miners. No cash value or guaranteed future reward.</p></div><Sparkles className="size-5 shrink-0 text-amber-300" /></div><div className="mt-6 flex items-center justify-between rounded-xl border border-amber-300/15 bg-black/10 px-4 py-3"><span className="text-sm font-semibold text-amber-100">+10 CMR points</span><Button type="button" size="sm" onClick={claimDrop} disabled={dropClaimed} className="rounded-lg bg-amber-300 font-bold text-slate-950 hover:bg-amber-200">{dropClaimed ? 'Claimed' : 'Claim drop'}</Button></div></section>
+    <section className="rounded-3xl border border-cyan-300/20 bg-cyan-300/[0.045] p-5 sm:p-7"><div className="flex items-start justify-between gap-4"><div><p className="text-xs font-semibold uppercase tracking-[0.22em] text-cyan-300">Community invite</p><p className="mt-2 text-lg font-bold text-white">Grow the network, keep it free</p><p className="mt-2 max-w-xl text-xs leading-5 text-slate-400">Invite friends with a personal link. You receive a transparent 5% participation bonus on their earned points, and they receive the same free access. No purchase, deposit, or payment is required.</p></div><Copy className="size-5 shrink-0 text-cyan-300" aria-hidden="true" /></div><div className="mt-5 flex flex-col gap-3 sm:flex-row"><input readOnly value={inviteLink} aria-label="Personal invitation link" className="h-11 min-w-0 flex-1 rounded-xl border border-white/[0.09] bg-[#0b0f17] px-3 text-xs text-slate-300 outline-none" /><Button type="button" size="sm" onClick={copyInviteLink} className="h-11 rounded-xl bg-cyan-300 font-bold text-slate-950 hover:bg-cyan-200"><Copy data-icon="inline-start" />{inviteCopied ? 'Copied' : 'Copy invite link'}</Button></div><p className="mt-4 text-[11px] leading-5 text-slate-500">Fair-use limit: referral bonuses are capped at 5% of verified participation and are not redeemable for cash. Abuse, self-referrals, and automated activity are excluded.</p></section>
     <section className="rounded-3xl border border-white/[0.08] bg-white/[0.035] p-5 sm:p-7"><div className="flex items-center justify-between"><div><p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">Rig performance</p><p className="mt-2 text-lg font-bold text-white">Network contribution</p></div><span className="rounded-lg bg-cyan-300/10 p-2 text-cyan-300"><Zap className="size-4" /></span></div><div className="mt-7 flex h-36 items-end gap-1.5">{[38,52,44,70,58,76,64,84,72,91,78,96,87,100,90,94,82,98,88,100].map((height, index) => <div key={index} className="flex-1 rounded-t-sm bg-gradient-to-t from-cyan-300/20 to-cyan-300" style={{ height: `${height}%`, opacity: index > 15 ? 1 : 0.58 }} />)}</div><div className="mt-5 flex items-center justify-between text-xs"><span className="text-slate-500">Last 24 hours</span><span className="font-semibold text-emerald-300">+12.4% <ArrowUpRight className="inline size-3" /></span></div><button type="button" onClick={() => setActiveView('Shop')} className="mt-6 flex w-full items-center justify-between rounded-xl border border-white/[0.08] px-4 py-3 text-sm text-slate-300 transition hover:border-cyan-300/30 hover:text-white"><span className="flex items-center gap-2"><Sparkles className="size-4 text-amber-300" />Scale your rig</span><ArrowUpRight className="size-4 text-slate-500" /></button></section>
   </div>
 }
