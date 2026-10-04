@@ -1,4 +1,4 @@
-import { bigint, integer, jsonb, numeric, pgTable, text, timestamp } from 'drizzle-orm/pg-core'
+import { bigint, boolean, integer, jsonb, numeric, pgTable, primaryKey, text, timestamp } from 'drizzle-orm/pg-core'
 
 export const participationProfiles = pgTable('participation_profiles', {
   walletAddress: text('wallet_address').primaryKey(),
@@ -32,7 +32,33 @@ export const participationEvents = pgTable('participation_events', {
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 })
 
+export const walletProfiles = pgTable('wallet_profiles', {
+  walletAddress: text('wallet_address').primaryKey(),
+  displayName: text('display_name').notNull().default('Anonymous Miner'),
+  bio: text('bio').notNull().default(''),
+  avatarId: text('avatar_id').notNull().default('neon-pioneer'),
+  isPublic: boolean('is_public').notNull().default(true),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+})
+
+export const avatarInventory = pgTable('avatar_inventory', {
+  walletAddress: text('wallet_address').notNull(),
+  avatarId: text('avatar_id').notNull(),
+  acquiredAt: timestamp('acquired_at', { withTimezone: true }).notNull().defaultNow(),
+}, (table) => ({ primaryKey: primaryKey({ columns: [table.walletAddress, table.avatarId] }) }))
+
+export const avatarPurchases = pgTable('avatar_purchases', {
+  id: bigint('id', { mode: 'number' }).primaryKey().generatedAlwaysAsIdentity(),
+  walletAddress: text('wallet_address').notNull(),
+  avatarId: text('avatar_id').notNull(),
+  price: numeric('price', { precision: 30, scale: 8 }).notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+})
+
 export type ParticipationProfile = typeof participationProfiles.$inferSelect
+export type WalletProfile = typeof walletProfiles.$inferSelect
+export type AvatarInventory = typeof avatarInventory.$inferSelect
 export type ParticipationCycle = typeof participationCycles.$inferSelect
 export type ParticipationEvent = typeof participationEvents.$inferSelect
 

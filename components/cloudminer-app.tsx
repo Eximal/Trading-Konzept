@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
+import { useAccount } from 'wagmi'
 import {
   ArrowDownToLine,
   ArrowUpRight,
@@ -9,6 +10,7 @@ import {
   BatteryCharging,
   Check,
   CircleDollarSign,
+  Copy,
   Cpu,
   FileText,
   Gauge,
@@ -21,6 +23,8 @@ import {
   Sparkles,
   Store,
   Wallet,
+  UserRound,
+  Search,
   Zap,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -38,6 +42,7 @@ const navItems = [
   { label: 'Shop', icon: Store },
   { label: 'Wallet', icon: Wallet },
   { label: 'Whitepaper', icon: FileText },
+  { label: 'Profile', icon: UserRound },
 ]
 
 function formatTokens(value: number) {
@@ -45,6 +50,7 @@ function formatTokens(value: number) {
 }
 
 export function CloudMinerApp() {
+  const { address, isConnected } = useAccount()
   const [activeView, setActiveView] = useState('Dashboard')
   const [isMining, setIsMining] = useState(false)
   const [tokens, setTokens] = useState(0)
@@ -54,6 +60,9 @@ export function CloudMinerApp() {
   const [network, setNetwork] = useState('Ethereum')
   const [ownedUpgrades, setOwnedUpgrades] = useState<string[]>([])
   const [notice, setNotice] = useState('')
+  const [dropClaimed, setDropClaimed] = useState(false)
+  const [inviteCopied, setInviteCopied] = useState(false)
+  const inviteLink = useMemo(() => `${typeof window !== 'undefined' ? window.location.origin : 'https://cloudminer.app'}?ref=JAKARAL-2024`, [])
 
   const totalHashrate = useMemo(() => {
     const base = 10
@@ -82,6 +91,17 @@ export function CloudMinerApp() {
     setNotice(`${formatTokens(tokens)} CMR transferred to your wallet.`)
     setBalance((current) => current + tokens)
     setTokens(0)
+  }
+
+  async function copyInviteLink() {
+    try {
+      await navigator.clipboard.writeText(inviteLink)
+      setInviteCopied(true)
+      setNotice('Einladungslink kopiert. Beide Seiten bleiben kostenlos.')
+      window.setTimeout(() => setInviteCopied(false), 2200)
+    } catch {
+      setNotice('Link konnte nicht kopiert werden. Bitte manuell auswählen.')
+    }
   }
 
   function withdraw() {
@@ -143,20 +163,21 @@ export function CloudMinerApp() {
 
         {notice && <div role="status" className="mb-5 flex items-center justify-between rounded-xl border border-cyan-300/20 bg-cyan-300/[0.07] px-4 py-3 text-sm text-cyan-100"><span>{notice}</span><button type="button" onClick={() => setNotice('')} className="text-cyan-300">Dismiss</button></div>}
 
-        {activeView === 'Dashboard' && <DashboardView isMining={isMining} setIsMining={setIsMining} tokens={tokens} balance={balance} totalHashrate={totalHashrate} claimRewards={claimRewards} setActiveView={setActiveView} />}
+        {activeView === 'Dashboard' && <DashboardView isMining={isMining} setIsMining={setIsMining} tokens={tokens} balance={balance} totalHashrate={totalHashrate} claimRewards={claimRewards} setActiveView={setActiveView} dropClaimed={dropClaimed} claimDrop={() => { setDropClaimed(true); setBalance((current) => current + 10); setNotice('Daily utility drop claimed: +10 CMR participation points.') }} inviteLink={inviteLink} inviteCopied={inviteCopied} copyInviteLink={copyInviteLink} />}
         {activeView === 'Shop' && <ShopView balance={balance} ownedUpgrades={ownedUpgrades} buyUpgrade={buyUpgrade} />}
         {activeView === 'Wallet' && <WalletView balance={balance} amount={withdrawalAmount} setAmount={setWithdrawalAmount} address={targetAddress} setAddress={setTargetAddress} network={network} setNetwork={setNetwork} withdraw={withdraw} />}
         {activeView === 'Whitepaper' && <WhitepaperView />}
+        {activeView === 'Profile' && <ProfileView address={address} isConnected={isConnected} balance={balance} />}
       </main>
 
       <nav className="fixed inset-x-4 bottom-4 z-30 flex justify-around rounded-2xl border border-white/[0.1] bg-[#111722]/90 p-2 shadow-2xl backdrop-blur-xl md:hidden" aria-label="Mobile navigation">
-        {navItems.map((item) => { const Icon = item.icon; return <button key={item.label} type="button" onClick={() => setActiveView(item.label)} className={`flex min-w-20 flex-col items-center gap-1 rounded-xl px-3 py-2 text-[10px] font-semibold ${activeView === item.label ? 'bg-cyan-300/10 text-cyan-300' : 'text-slate-500'}`}><Icon className="size-4" aria-hidden="true" />{item.label}</button> })}
+        {navItems.map((item) => { const Icon = item.icon; return <button key={item.label} type="button" onClick={() => setActiveView(item.label)} className={`flex min-w-0 flex-1 flex-col items-center gap-1 rounded-xl px-1 py-2 text-[9px] font-semibold ${activeView === item.label ? 'bg-cyan-300/10 text-cyan-300' : 'text-slate-500'}`}><Icon className="size-4" aria-hidden="true" />{item.label}</button> })}
       </nav>
     </div>
   )
 }
 
-function DashboardView({ isMining, setIsMining, tokens, balance, totalHashrate, claimRewards, setActiveView }: { isMining: boolean; setIsMining: (value: boolean) => void; tokens: number; balance: number; totalHashrate: number; claimRewards: () => void; setActiveView: (value: string) => void }) {
+function DashboardView({ isMining, setIsMining, tokens, balance, totalHashrate, claimRewards, setActiveView, dropClaimed, claimDrop, inviteLink, inviteCopied, copyInviteLink }: { isMining: boolean; setIsMining: (value: boolean) => void; tokens: number; balance: number; totalHashrate: number; claimRewards: () => void; setActiveView: (value: string) => void; dropClaimed: boolean; claimDrop: () => void; inviteLink: string; inviteCopied: boolean; copyInviteLink: () => void }) {
   return <div className="grid gap-5 lg:grid-cols-[1.6fr_1fr]">
     <section className="relative overflow-hidden rounded-3xl border border-cyan-300/15 bg-white/[0.035] p-5 shadow-[0_0_55px_rgba(34,211,238,0.05)] sm:p-7">
       <div className="absolute -right-24 -top-24 size-64 rounded-full bg-cyan-300/10 blur-3xl" />
@@ -164,6 +185,8 @@ function DashboardView({ isMining, setIsMining, tokens, balance, totalHashrate, 
       <div className="relative mt-8 grid grid-cols-2 gap-3 border-t border-white/[0.08] pt-5 sm:grid-cols-4"><Metric label="Hashrate" value={`${totalHashrate.toFixed(1)} MH/s`} icon={Gauge} /><Metric label="Total earned" value={`${formatTokens(balance)} CMR`} icon={CircleDollarSign} /><Metric label="Efficiency" value="94.8%" icon={BatteryCharging} /><Metric label="Active rigs" value="03 / 05" icon={BarChart3} /></div>
       <div className="mt-7 flex flex-col gap-3 sm:flex-row"><Button onClick={() => setIsMining(!isMining)} className="h-12 flex-1 rounded-xl bg-emerald-400 font-bold text-slate-950 hover:bg-emerald-300"><Power data-icon="inline-start" />{isMining ? 'Stop mining' : 'Start mining'}</Button><Button onClick={claimRewards} variant="outline" className="h-12 flex-1 rounded-xl border-cyan-300/30 bg-transparent font-bold text-cyan-200 hover:bg-cyan-300/10"><ArrowDownToLine data-icon="inline-start" />Claim rewards</Button></div>
     </section>
+    <section className="rounded-3xl border border-amber-300/20 bg-amber-300/[0.05] p-5 sm:p-7"><div className="flex items-start justify-between gap-4"><div><p className="text-xs font-semibold uppercase tracking-[0.22em] text-amber-200">Daily utility drop</p><p className="mt-2 text-lg font-bold text-white">Community supply crate</p><p className="mt-2 text-xs leading-5 text-slate-400">A small participation bonus for returning miners. No cash value or guaranteed future reward.</p></div><Sparkles className="size-5 shrink-0 text-amber-300" /></div><div className="mt-6 flex items-center justify-between rounded-xl border border-amber-300/15 bg-black/10 px-4 py-3"><span className="text-sm font-semibold text-amber-100">+10 CMR points</span><Button type="button" size="sm" onClick={claimDrop} disabled={dropClaimed} className="rounded-lg bg-amber-300 font-bold text-slate-950 hover:bg-amber-200">{dropClaimed ? 'Claimed' : 'Claim drop'}</Button></div></section>
+    <section className="rounded-3xl border border-cyan-300/20 bg-cyan-300/[0.045] p-5 sm:p-7"><div className="flex items-start justify-between gap-4"><div><p className="text-xs font-semibold uppercase tracking-[0.22em] text-cyan-300">Community invite</p><p className="mt-2 text-lg font-bold text-white">Grow the network, keep it free</p><p className="mt-2 max-w-xl text-xs leading-5 text-slate-400">Invite friends with a personal link. You receive a transparent 5% participation bonus on their earned points, and they receive the same free access. No purchase, deposit, or payment is required.</p></div><Copy className="size-5 shrink-0 text-cyan-300" aria-hidden="true" /></div><div className="mt-5 flex flex-col gap-3 sm:flex-row"><input readOnly value={inviteLink} aria-label="Personal invitation link" className="h-11 min-w-0 flex-1 rounded-xl border border-white/[0.09] bg-[#0b0f17] px-3 text-xs text-slate-300 outline-none" /><Button type="button" size="sm" onClick={copyInviteLink} className="h-11 rounded-xl bg-cyan-300 font-bold text-slate-950 hover:bg-cyan-200"><Copy data-icon="inline-start" />{inviteCopied ? 'Copied' : 'Copy invite link'}</Button></div><p className="mt-4 text-[11px] leading-5 text-slate-500">Fair-use limit: referral bonuses are capped at 5% of verified participation and are not redeemable for cash. Abuse, self-referrals, and automated activity are excluded.</p></section>
     <section className="rounded-3xl border border-white/[0.08] bg-white/[0.035] p-5 sm:p-7"><div className="flex items-center justify-between"><div><p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">Rig performance</p><p className="mt-2 text-lg font-bold text-white">Network contribution</p></div><span className="rounded-lg bg-cyan-300/10 p-2 text-cyan-300"><Zap className="size-4" /></span></div><div className="mt-7 flex h-36 items-end gap-1.5">{[38,52,44,70,58,76,64,84,72,91,78,96,87,100,90,94,82,98,88,100].map((height, index) => <div key={index} className="flex-1 rounded-t-sm bg-gradient-to-t from-cyan-300/20 to-cyan-300" style={{ height: `${height}%`, opacity: index > 15 ? 1 : 0.58 }} />)}</div><div className="mt-5 flex items-center justify-between text-xs"><span className="text-slate-500">Last 24 hours</span><span className="font-semibold text-emerald-300">+12.4% <ArrowUpRight className="inline size-3" /></span></div><button type="button" onClick={() => setActiveView('Shop')} className="mt-6 flex w-full items-center justify-between rounded-xl border border-white/[0.08] px-4 py-3 text-sm text-slate-300 transition hover:border-cyan-300/30 hover:text-white"><span className="flex items-center gap-2"><Sparkles className="size-4 text-amber-300" />Scale your rig</span><ArrowUpRight className="size-4 text-slate-500" /></button></section>
   </div>
 }
@@ -173,6 +196,33 @@ function Metric({ label, value, icon: Icon }: { label: string; value: string; ic
 function ShopView({ balance, ownedUpgrades, buyUpgrade }: { balance: number; ownedUpgrades: string[]; buyUpgrade: (name: string, price: number) => void }) { return <section><div className="mb-5 flex items-end justify-between"><div><p className="text-xs font-semibold uppercase tracking-[0.22em] text-cyan-300">Hardware market</p><h2 className="mt-2 text-2xl font-black text-white">Build your advantage</h2></div><div className="flex items-center gap-2 rounded-xl border border-white/[0.08] bg-white/[0.03] px-3 py-2 text-xs text-slate-400"><CircleDollarSign className="size-4 text-emerald-300" />{formatTokens(balance)} CMR</div></div><div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">{upgrades.map((item) => { const Icon = item.icon; const owned = ownedUpgrades.includes(item.name); const canBuy = balance >= item.price; return <article key={item.name} className="group rounded-2xl border border-white/[0.08] bg-white/[0.035] p-5 transition hover:-translate-y-1 hover:border-cyan-300/30"><div className={`mb-8 flex size-12 items-center justify-center rounded-2xl ${item.tone === 'cyan' ? 'bg-cyan-300/10 text-cyan-300' : item.tone === 'green' ? 'bg-emerald-300/10 text-emerald-300' : item.tone === 'violet' ? 'bg-violet-300/10 text-violet-300' : 'bg-amber-300/10 text-amber-300'}`}><Icon className="size-6" /></div><p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">{item.type}</p><h3 className="mt-2 text-lg font-bold text-white">{item.name}</h3><div className="mt-5 flex flex-col gap-3 border-y border-white/[0.07] py-4 text-xs"><span className="flex justify-between text-slate-500">Hashrate <b className="text-emerald-300">{item.boost}</b></span><span className="flex justify-between text-slate-500">Energy <b className="text-slate-300">{item.energy}</b></span></div><div className="mt-5 flex items-center justify-between"><span className="font-bold text-white">{item.price} <span className="text-xs font-medium text-slate-500">CMR</span></span><Button size="sm" disabled={owned || !canBuy} onClick={() => buyUpgrade(item.name, item.price)} className="rounded-lg bg-white/10 text-white hover:bg-cyan-300 hover:text-slate-950">{owned ? <><Check data-icon="inline-start" />Owned</> : 'Buy upgrade'}</Button></div></article> })}</div></section> }
 
 function WalletView({ balance, amount, setAmount, address, setAddress, network, setNetwork, withdraw }: { balance: number; amount: string; setAmount: (value: string) => void; address: string; setAddress: (value: string) => void; network: string; setNetwork: (value: string) => void; withdraw: () => void }) { return <section className="mx-auto grid max-w-5xl gap-5 lg:grid-cols-[0.85fr_1.15fr]"><div className="rounded-3xl border border-cyan-300/20 bg-gradient-to-br from-cyan-300/15 via-white/[0.04] to-transparent p-6 sm:p-8"><div className="flex items-center justify-between"><p className="text-xs font-semibold uppercase tracking-[0.2em] text-cyan-200">Available balance</p><Wallet className="size-5 text-cyan-300" /></div><p className="mt-10 text-4xl font-black text-white">{formatTokens(balance)} <span className="text-sm font-bold text-cyan-300">CMR</span></p><p className="mt-2 text-xs text-slate-500">Rewards available to withdraw</p><div className="mt-10 flex items-center gap-2 text-xs text-slate-400"><LockKeyhole className="size-3.5 text-emerald-300" /> Non-custodial wallet layer</div></div><div className="rounded-3xl border border-white/[0.08] bg-white/[0.035] p-6 sm:p-8"><div className="mb-6"><p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Withdraw rewards</p><h2 className="mt-2 text-xl font-bold text-white">Send CMR to your wallet</h2></div><div className="flex flex-col gap-4"><label className="text-xs font-semibold text-slate-400">Target wallet address<input value={address} onChange={(event) => setAddress(event.target.value)} placeholder="0x... or wallet address" className="mt-2 h-12 w-full rounded-xl border border-white/[0.09] bg-[#0b0f17] px-4 text-sm text-white outline-none placeholder:text-slate-700 focus:border-cyan-300/50" /></label><label className="text-xs font-semibold text-slate-400">Network<select value={network} onChange={(event) => setNetwork(event.target.value)} className="mt-2 h-12 w-full rounded-xl border border-white/[0.09] bg-[#0b0f17] px-4 text-sm text-white outline-none focus:border-cyan-300/50"><option>Ethereum</option><option>Polygon</option><option>Solana</option></select></label><label className="text-xs font-semibold text-slate-400">Amount<input value={amount} onChange={(event) => setAmount(event.target.value)} type="number" min="0" step="0.01" placeholder="0.00" className="mt-2 h-12 w-full rounded-xl border border-white/[0.09] bg-[#0b0f17] px-4 text-sm text-white outline-none placeholder:text-slate-700 focus:border-cyan-300/50" /></label><Button onClick={withdraw} className="h-12 rounded-xl bg-cyan-300 font-bold text-slate-950 hover:bg-cyan-200"><ArrowDownToLine data-icon="inline-start" />Withdraw</Button><p className="flex items-center gap-2 text-[11px] text-slate-600"><LockKeyhole className="size-3" /> Withdrawals are simulated for Proof-of-Participation points.</p></div></div></section> }
+
+function ProfileView({ address, isConnected, balance }: { address?: `0x${string}`; isConnected: boolean; balance: number }) {
+  const [searchAddress, setSearchAddress] = useState('')
+  const [selectedAvatar, setSelectedAvatar] = useState('Nebula Scout')
+  const avatars = [
+    { name: 'Nebula Scout', rarity: 'Common', price: 0, color: 'from-cyan-300 to-blue-500' },
+    { name: 'Circuit Warden', rarity: 'Rare', price: 50, color: 'from-emerald-300 to-teal-500' },
+    { name: 'Quantum Fox', rarity: 'Epic', price: 250, color: 'from-violet-300 to-fuchsia-500' },
+  ]
+  const walletLabel = address ? `${address.slice(0, 6)}...${address.slice(-4)}` : 'Wallet not connected'
+  const searched = searchAddress.trim()
+  const validSearch = /^0x[a-fA-F0-9]{40}$/.test(searched)
+
+  return <section className="mx-auto flex max-w-6xl flex-col gap-5">
+    <div className="grid gap-5 lg:grid-cols-[0.9fr_1.1fr]">
+      <article className="rounded-3xl border border-cyan-300/20 bg-gradient-to-br from-cyan-300/15 via-white/[0.04] to-transparent p-6 sm:p-8">
+        <div className={`mx-auto flex size-28 items-center justify-center rounded-[2rem] bg-gradient-to-br ${avatars.find((avatar) => avatar.name === selectedAvatar)?.color} text-4xl font-black text-slate-950 shadow-[0_0_42px_rgba(34,211,238,0.25)]`}>{selectedAvatar.slice(0, 1)}</div>
+        <p className="mt-6 text-center text-xs font-bold uppercase tracking-[0.22em] text-cyan-200">Wallet identity</p>
+        <h2 className="mt-2 text-center text-2xl font-black text-white">{selectedAvatar}</h2>
+        <p className="mt-2 text-center font-mono text-xs text-slate-500">{walletLabel}</p>
+        <div className="mt-6 grid grid-cols-2 gap-3 text-center"><div className="rounded-xl border border-white/[0.08] bg-black/10 p-3"><p className="text-lg font-bold text-white">{formatTokens(balance)}</p><p className="text-[10px] uppercase tracking-wider text-slate-500">CMR balance</p></div><div className="rounded-xl border border-white/[0.08] bg-black/10 p-3"><p className="text-lg font-bold text-emerald-300">{isConnected ? 'Verified' : 'Offline'}</p><p className="text-[10px] uppercase tracking-wider text-slate-500">Wallet status</p></div></div>
+      </article>
+      <article className="rounded-3xl border border-white/[0.08] bg-white/[0.035] p-6 sm:p-8"><div><p className="text-xs font-bold uppercase tracking-[0.22em] text-cyan-300">Avatar exchange</p><h2 className="mt-2 text-2xl font-black text-white">Collect your identity</h2><p className="mt-2 text-sm leading-6 text-slate-400">Trade participation points for cosmetic profile avatars. No purchases, transfers, or financial value are involved.</p></div><div className="mt-6 grid gap-3 sm:grid-cols-3">{avatars.map((avatar) => { const selected = selectedAvatar === avatar.name; const canClaim = balance >= avatar.price; return <button key={avatar.name} type="button" onClick={() => canClaim && setSelectedAvatar(avatar.name)} disabled={!canClaim} className={`rounded-2xl border p-4 text-left transition ${selected ? 'border-cyan-300/60 bg-cyan-300/10' : 'border-white/[0.08] bg-black/10 hover:border-cyan-300/30'} ${!canClaim ? 'cursor-not-allowed opacity-45' : ''}`}><div className={`flex size-11 items-center justify-center rounded-xl bg-gradient-to-br ${avatar.color} font-bold text-slate-950`}>{avatar.name.slice(0, 1)}</div><p className="mt-3 text-sm font-bold text-white">{avatar.name}</p><p className="mt-1 text-[10px] uppercase tracking-wider text-slate-500">{avatar.rarity}</p><p className="mt-3 text-xs font-bold text-cyan-200">{avatar.price === 0 ? 'Free' : `${avatar.price} CMR`}</p></button> })}</div></article>
+    </div>
+    <article className="rounded-3xl border border-white/[0.08] bg-white/[0.035] p-6 sm:p-8"><div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between"><div><p className="text-xs font-bold uppercase tracking-[0.22em] text-slate-500">Public wallet directory</p><h2 className="mt-2 text-xl font-bold text-white">Find a miner profile</h2><p className="mt-2 text-sm text-slate-400">Only public wallet and cosmetic profile data is shown. Never share a seed phrase.</p></div><div className="flex w-full max-w-md gap-2"><div className="relative flex-1"><Search className="pointer-events-none absolute left-3 top-3.5 size-4 text-slate-600" /><input value={searchAddress} onChange={(event) => setSearchAddress(event.target.value)} placeholder="0x wallet address" aria-label="Search wallet address" className="h-11 w-full rounded-xl border border-white/[0.09] bg-[#0b0f17] pl-10 pr-3 text-xs text-white outline-none placeholder:text-slate-700 focus:border-cyan-300/50" /></div><Button type="button" variant="outline" className="h-11 rounded-xl border-cyan-300/30 text-cyan-200" disabled={!validSearch}>View</Button></div></div>{searched && !validSearch && <p className="mt-3 text-xs text-amber-300">Enter a valid EVM wallet address to search.</p>}{validSearch && <div className="mt-5 rounded-2xl border border-cyan-300/20 bg-cyan-300/[0.05] p-4"><p className="text-xs font-bold text-cyan-200">Public profile found</p><p className="mt-2 font-mono text-xs text-slate-300">{searched.slice(0, 10)}...{searched.slice(-8)}</p><p className="mt-2 text-xs text-slate-500">Avatar and public participation details become visible after the wallet owner creates a profile.</p></div>}</article>
+  </section>
+}
 
 function WhitepaperView() {
   return (
@@ -195,6 +245,11 @@ function WhitepaperView() {
         <p className="text-xs font-bold uppercase tracking-[0.22em] text-cyan-300">Roadmap</p>
         <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">{['Foundation: PoP, Datenmodell, Regeln', 'Trust: Auth, Anti-Abuse, Audit logs', 'World: MMORPG prototype, quests, items', 'Utility: geprüfte Integrationen, Governance'].map((phase, index) => <div key={phase} className="rounded-2xl border border-white/[0.08] bg-[#0b0f17]/70 p-4"><p className="text-xs font-bold text-emerald-300">0{index + 1}</p><p className="mt-3 text-sm font-semibold leading-6 text-slate-200">{phase}</p></div>)}</div>
       </section>
+      <footer className="rounded-3xl border border-cyan-300/15 bg-cyan-300/[0.04] p-5 text-xs leading-6 text-slate-400 sm:p-6">
+        <p className="font-semibold text-slate-200">Copyright und Urheberhinweis</p>
+        <p className="mt-2">© 2024–2026 Jakaral United Estab. Alle Rechte vorbehalten. CloudMiner, das Proof-of-Participation-Konzept, die App-Architektur, Texte und die geplante Spielwelt sind Entwicklungsarbeiten von Marco Budo Schenk, CEO und Developer von Jakaral United Estab.</p>
+        <p className="mt-2">Technische Assistenz durch KI ändert nichts an der menschlichen Verantwortung, Urheberschaft oder den Rechten des Projektträgers. Nutzung, Vervielfältigung oder kommerzielle Verwertung nur mit ausdrücklicher Genehmigung. Dieser Hinweis ist eine Produktinformation und ersetzt keine rechtliche Marken- oder Urheberrechtsberatung.</p>
+      </footer>
     </article>
   )
 }
