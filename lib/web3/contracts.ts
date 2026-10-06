@@ -77,6 +77,8 @@ export function getAssetAddress(
   return value as Address
 }
 
+export const BRATE_TOKEN_BASE = '0xE0CB06A00524180fFbAE005d1010531b99e0A254' as Address
+
 export const MINING_CONTRACT_ADDRESS = ((): Address | undefined => {
   const value = process.env.NEXT_PUBLIC_MINING_CONTRACT
   return value && isAddress(value) ? (value as Address) : undefined

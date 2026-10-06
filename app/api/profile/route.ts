@@ -102,7 +102,6 @@ export const fetchCache = 'force-no-store'
 export const dynamicParams = true
 export const generateStaticParams = undefined
 export const segmentConfig = undefined
-export const config = undefined
 export const experimental_ppr = false
 export const preferredRegionRuntime = 'nodejs'
 export const unstable_expiration = 0

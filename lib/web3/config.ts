@@ -3,10 +3,10 @@ import { base, bsc, mainnet, monad } from 'wagmi/chains'
 import { walletConnect } from 'wagmi/connectors'
 import { SUPPORTED_CHAINS } from './chains'
 
-export const APP_NAME = 'JKU Mining Protocol'
+export const APP_NAME = 'CloudMiner · BRATE'
 export const APP_URL = 'https://miner.jkuspot.com'
 export const APP_DESCRIPTION =
-  'Multi-chain mining rig for the JKU protocol. Activate 24h cycles and boost hashrate with $JKU, $ENT and NFT holdings.'
+  'CloudMiner participation mining with live BRATE token balances on Base.'
 
 const walletConnectProjectId = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID
 

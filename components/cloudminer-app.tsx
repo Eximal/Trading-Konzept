@@ -1,7 +1,8 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
-import { useAccount } from 'wagmi'
+import { useAccount, useReadContract } from 'wagmi'
+import { formatUnits } from 'viem'
 import {
   ArrowDownToLine,
   ArrowUpRight,
@@ -30,6 +31,15 @@ import {
 import { Button } from '@/components/ui/button'
 import { WalletButton } from '@/components/wallet-button'
 
+const BRATE_TOKEN_ADDRESS = '0xE0CB06A00524180fFbAE005d1010531b99e0A254' as const
+const brateTokenAbi = [
+  { type: 'function', name: 'balanceOf', stateMutability: 'view', inputs: [{ name: 'account', type: 'address' }], outputs: [{ name: '', type: 'uint256' }] },
+  { type: 'function', name: 'decimals', stateMutability: 'view', inputs: [], outputs: [{ name: '', type: 'uint8' }] },
+  { type: 'function', name: 'symbol', stateMutability: 'view', inputs: [], outputs: [{ name: '', type: 'string' }] },
+  { type: 'function', name: 'totalSupply', stateMutability: 'view', inputs: [], outputs: [{ name: '', type: 'uint256' }] },
+  { type: 'function', name: 'owner', stateMutability: 'view', inputs: [], outputs: [{ name: '', type: 'address' }] },
+] as const
+
 const upgrades = [
   { name: 'RTX 4090 Rig', type: 'GPU', boost: '+25.0 MH/s', energy: '350 W', price: 100, icon: Cpu, tone: 'cyan' },
   { name: 'Antminer S19 Pro', type: 'ASIC', boost: '+110.0 MH/s', energy: '3.25 kW', price: 500, icon: Pickaxe, tone: 'green' },
@@ -50,7 +60,23 @@ function formatTokens(value: number) {
 }
 
 export function CloudMinerApp() {
-  const { address, isConnected } = useAccount()
+  const { address, isConnected, chainId } = useAccount()
+  const { data: brateRawBalance, isLoading: isBrateLoading, isError: isBrateError } = useReadContract({
+    address: BRATE_TOKEN_ADDRESS,
+    abi: brateTokenAbi,
+    functionName: 'balanceOf',
+    args: address ? [address] : undefined,
+    chainId: 8453,
+    query: { enabled: Boolean(address && chainId === 8453), refetchInterval: 30_000 },
+  })
+  const { data: brateDecimals } = useReadContract({ address: BRATE_TOKEN_ADDRESS, abi: brateTokenAbi, functionName: 'decimals', chainId: 8453, query: { enabled: chainId === 8453, staleTime: Infinity } })
+  const { data: brateSymbol } = useReadContract({ address: BRATE_TOKEN_ADDRESS, abi: brateTokenAbi, functionName: 'symbol', chainId: 8453, query: { enabled: chainId === 8453, staleTime: Infinity } })
+  const { data: brateTotalSupply } = useReadContract({ address: BRATE_TOKEN_ADDRESS, abi: brateTokenAbi, functionName: 'totalSupply', chainId: 8453, query: { enabled: chainId === 8453, staleTime: 60_000 } })
+  const { data: brateOwner } = useReadContract({ address: BRATE_TOKEN_ADDRESS, abi: brateTokenAbi, functionName: 'owner', chainId: 8453, query: { enabled: chainId === 8453, staleTime: 60_000 } })
+  const tokenDecimals = brateDecimals ?? 8
+  const brateBalance = brateRawBalance === undefined ? null : formatUnits(brateRawBalance, tokenDecimals)
+  const brateSupply = brateTotalSupply === undefined ? null : formatUnits(brateTotalSupply, tokenDecimals)
+  const brateOwnerLabel = brateOwner ? `${brateOwner.slice(0, 6)}...${brateOwner.slice(-4)}` : 'Protected owner'
   const [activeView, setActiveView] = useState('Dashboard')
   const [isMining, setIsMining] = useState(false)
   const [tokens, setTokens] = useState(0)
@@ -151,7 +177,7 @@ export function CloudMinerApp() {
         </div>
       </header>
 
-      <main className="relative mx-auto max-w-7xl px-4 pb-28 pt-7 sm:px-6 lg:px-8 lg:pb-12">
+      <main className="relative mx-auto min-w-0 max-w-7xl px-4 pb-40 pt-7 sm:px-6 sm:pb-32 lg:px-8 lg:pb-12">
         <div className="mb-7 flex items-end justify-between gap-4">
           <div>
             <p className="mb-2 flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.25em] text-cyan-300"><span className="size-1.5 rounded-full bg-cyan-300 shadow-[0_0_10px_currentColor]" />Protocol online</p>
@@ -163,7 +189,7 @@ export function CloudMinerApp() {
 
         {notice && <div role="status" className="mb-5 flex items-center justify-between rounded-xl border border-cyan-300/20 bg-cyan-300/[0.07] px-4 py-3 text-sm text-cyan-100"><span>{notice}</span><button type="button" onClick={() => setNotice('')} className="text-cyan-300">Dismiss</button></div>}
 
-        {activeView === 'Dashboard' && <DashboardView isMining={isMining} setIsMining={setIsMining} tokens={tokens} balance={balance} totalHashrate={totalHashrate} claimRewards={claimRewards} setActiveView={setActiveView} dropClaimed={dropClaimed} claimDrop={() => { setDropClaimed(true); setBalance((current) => current + 10); setNotice('Daily utility drop claimed: +10 CMR participation points.') }} inviteLink={inviteLink} inviteCopied={inviteCopied} copyInviteLink={copyInviteLink} />}
+        {activeView === 'Dashboard' && <DashboardView isMining={isMining} setIsMining={setIsMining} tokens={tokens} balance={balance} totalHashrate={totalHashrate} claimRewards={claimRewards} setActiveView={setActiveView} dropClaimed={dropClaimed} claimDrop={() => { setDropClaimed(true); setBalance((current) => current + 10); setNotice('Daily utility drop claimed: +10 CMR participation points.') }} inviteLink={inviteLink} inviteCopied={inviteCopied} copyInviteLink={copyInviteLink} brateBalance={brateBalance} brateSupply={brateSupply} brateSymbol={brateSymbol} brateOwnerLabel={brateOwnerLabel} isBrateLoading={isBrateLoading} isBrateError={isBrateError} chainId={chainId} />}
         {activeView === 'Shop' && <ShopView balance={balance} ownedUpgrades={ownedUpgrades} buyUpgrade={buyUpgrade} />}
         {activeView === 'Wallet' && <WalletView balance={balance} amount={withdrawalAmount} setAmount={setWithdrawalAmount} address={targetAddress} setAddress={setTargetAddress} network={network} setNetwork={setNetwork} withdraw={withdraw} />}
         {activeView === 'Whitepaper' && <WhitepaperView />}
@@ -171,13 +197,13 @@ export function CloudMinerApp() {
       </main>
 
       <nav className="fixed inset-x-4 bottom-4 z-30 flex justify-around rounded-2xl border border-white/[0.1] bg-[#111722]/90 p-2 shadow-2xl backdrop-blur-xl md:hidden" aria-label="Mobile navigation">
-        {navItems.map((item) => { const Icon = item.icon; return <button key={item.label} type="button" onClick={() => setActiveView(item.label)} className={`flex min-w-0 flex-1 flex-col items-center gap-1 rounded-xl px-1 py-2 text-[9px] font-semibold ${activeView === item.label ? 'bg-cyan-300/10 text-cyan-300' : 'text-slate-500'}`}><Icon className="size-4" aria-hidden="true" />{item.label}</button> })}
+        {navItems.map((item) => { const Icon = item.icon; return <button key={item.label} type="button" onClick={() => setActiveView(item.label)} className={`flex min-w-0 flex-1 flex-col items-center gap-1 overflow-hidden rounded-xl px-0.5 py-2 text-[8px] font-semibold ${activeView === item.label ? 'bg-cyan-300/10 text-cyan-300' : 'text-slate-500'}`}><Icon className="size-4" aria-hidden="true" />{item.label}</button> })}
       </nav>
     </div>
   )
 }
 
-function DashboardView({ isMining, setIsMining, tokens, balance, totalHashrate, claimRewards, setActiveView, dropClaimed, claimDrop, inviteLink, inviteCopied, copyInviteLink }: { isMining: boolean; setIsMining: (value: boolean) => void; tokens: number; balance: number; totalHashrate: number; claimRewards: () => void; setActiveView: (value: string) => void; dropClaimed: boolean; claimDrop: () => void; inviteLink: string; inviteCopied: boolean; copyInviteLink: () => void }) {
+function DashboardView({ isMining, setIsMining, tokens, balance, totalHashrate, claimRewards, setActiveView, dropClaimed, claimDrop, inviteLink, inviteCopied, copyInviteLink, brateBalance, brateSupply, brateSymbol, brateOwnerLabel, isBrateLoading, isBrateError, chainId }: { isMining: boolean; setIsMining: (value: boolean) => void; tokens: number; balance: number; totalHashrate: number; claimRewards: () => void; setActiveView: (value: string) => void; dropClaimed: boolean; claimDrop: () => void; inviteLink: string; inviteCopied: boolean; copyInviteLink: () => void; brateBalance: string | null; brateSupply: string | null; brateSymbol?: string; brateOwnerLabel: string; isBrateLoading: boolean; isBrateError: boolean; chainId?: number }) {
   return <div className="grid gap-5 lg:grid-cols-[1.6fr_1fr]">
     <section className="relative overflow-hidden rounded-3xl border border-cyan-300/15 bg-white/[0.035] p-5 shadow-[0_0_55px_rgba(34,211,238,0.05)] sm:p-7">
       <div className="absolute -right-24 -top-24 size-64 rounded-full bg-cyan-300/10 blur-3xl" />
@@ -185,6 +211,7 @@ function DashboardView({ isMining, setIsMining, tokens, balance, totalHashrate, 
       <div className="relative mt-8 grid grid-cols-2 gap-3 border-t border-white/[0.08] pt-5 sm:grid-cols-4"><Metric label="Hashrate" value={`${totalHashrate.toFixed(1)} MH/s`} icon={Gauge} /><Metric label="Total earned" value={`${formatTokens(balance)} CMR`} icon={CircleDollarSign} /><Metric label="Efficiency" value="94.8%" icon={BatteryCharging} /><Metric label="Active rigs" value="03 / 05" icon={BarChart3} /></div>
       <div className="mt-7 flex flex-col gap-3 sm:flex-row"><Button onClick={() => setIsMining(!isMining)} className="h-12 flex-1 rounded-xl bg-emerald-400 font-bold text-slate-950 hover:bg-emerald-300"><Power data-icon="inline-start" />{isMining ? 'Stop mining' : 'Start mining'}</Button><Button onClick={claimRewards} variant="outline" className="h-12 flex-1 rounded-xl border-cyan-300/30 bg-transparent font-bold text-cyan-200 hover:bg-cyan-300/10"><ArrowDownToLine data-icon="inline-start" />Claim rewards</Button></div>
     </section>
+    <section className="min-w-0 rounded-3xl border border-[#58a6ff]/25 bg-[#58a6ff]/[0.05] p-5 sm:p-7"><div className="flex min-w-0 items-start justify-between gap-3"><div className="flex min-w-0 items-start gap-3"><img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/BB-tP04UaJUBR190Bw7PhwBLUT7loRGLf.jpeg" alt="Brate Banana Coin-Artwork" className="size-16 shrink-0 rounded-2xl border border-[#58a6ff]/30 object-cover shadow-[0_0_24px_rgba(88,166,255,0.2)]" /><div><p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#58a6ff]">Base onchain token</p><p className="mt-2 text-lg font-bold text-white">Brate Banana (BRATE)</p><p className="mt-2 text-xs leading-5 text-slate-400">Live balance from the token contract on Base. Contract uses 8 decimals.</p></div></div><CircleDollarSign className="size-5 shrink-0 text-[#58a6ff]" aria-hidden="true" /></div><div className="mt-5 flex flex-wrap items-end justify-between gap-4"><div><p className="break-all font-mono text-xl font-black text-white sm:text-2xl">{chainId !== 8453 ? 'Switch to Base' : isBrateLoading ? 'Reading...' : isBrateError ? 'Unavailable' : brateBalance ?? '0'} <span className="text-sm text-[#58a6ff]">BRATE</span></p><p className="mt-2 break-all font-mono text-[10px] text-slate-500">0xE0CB...e0A254 · {brateSymbol ?? 'BRATE'} · 8 decimals</p><p className="mt-1 text-[10px] text-slate-500">Supply: {brateSupply ?? '—'} · Owner: {brateOwnerLabel}</p></div><a href="https://basescan.org/token/0xE0CB06A00524180fFbAE005d1010531b99e0A254" target="_blank" rel="noreferrer" className="text-xs font-semibold text-[#58a6ff] hover:underline">View on BaseScan</a></div></section>
     <section className="rounded-3xl border border-amber-300/20 bg-amber-300/[0.05] p-5 sm:p-7"><div className="flex items-start justify-between gap-4"><div><p className="text-xs font-semibold uppercase tracking-[0.22em] text-amber-200">Daily utility drop</p><p className="mt-2 text-lg font-bold text-white">Community supply crate</p><p className="mt-2 text-xs leading-5 text-slate-400">A small participation bonus for returning miners. No cash value or guaranteed future reward.</p></div><Sparkles className="size-5 shrink-0 text-amber-300" /></div><div className="mt-6 flex items-center justify-between rounded-xl border border-amber-300/15 bg-black/10 px-4 py-3"><span className="text-sm font-semibold text-amber-100">+10 CMR points</span><Button type="button" size="sm" onClick={claimDrop} disabled={dropClaimed} className="rounded-lg bg-amber-300 font-bold text-slate-950 hover:bg-amber-200">{dropClaimed ? 'Claimed' : 'Claim drop'}</Button></div></section>
     <section className="rounded-3xl border border-cyan-300/20 bg-cyan-300/[0.045] p-5 sm:p-7"><div className="flex items-start justify-between gap-4"><div><p className="text-xs font-semibold uppercase tracking-[0.22em] text-cyan-300">Community invite</p><p className="mt-2 text-lg font-bold text-white">Grow the network, keep it free</p><p className="mt-2 max-w-xl text-xs leading-5 text-slate-400">Invite friends with a personal link. You receive a transparent 5% participation bonus on their earned points, and they receive the same free access. No purchase, deposit, or payment is required.</p></div><Copy className="size-5 shrink-0 text-cyan-300" aria-hidden="true" /></div><div className="mt-5 flex flex-col gap-3 sm:flex-row"><input readOnly value={inviteLink} aria-label="Personal invitation link" className="h-11 min-w-0 flex-1 rounded-xl border border-white/[0.09] bg-[#0b0f17] px-3 text-xs text-slate-300 outline-none" /><Button type="button" size="sm" onClick={copyInviteLink} className="h-11 rounded-xl bg-cyan-300 font-bold text-slate-950 hover:bg-cyan-200"><Copy data-icon="inline-start" />{inviteCopied ? 'Copied' : 'Copy invite link'}</Button></div><p className="mt-4 text-[11px] leading-5 text-slate-500">Fair-use limit: referral bonuses are capped at 5% of verified participation and are not redeemable for cash. Abuse, self-referrals, and automated activity are excluded.</p></section>
     <section className="rounded-3xl border border-white/[0.08] bg-white/[0.035] p-5 sm:p-7"><div className="flex items-center justify-between"><div><p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">Rig performance</p><p className="mt-2 text-lg font-bold text-white">Network contribution</p></div><span className="rounded-lg bg-cyan-300/10 p-2 text-cyan-300"><Zap className="size-4" /></span></div><div className="mt-7 flex h-36 items-end gap-1.5">{[38,52,44,70,58,76,64,84,72,91,78,96,87,100,90,94,82,98,88,100].map((height, index) => <div key={index} className="flex-1 rounded-t-sm bg-gradient-to-t from-cyan-300/20 to-cyan-300" style={{ height: `${height}%`, opacity: index > 15 ? 1 : 0.58 }} />)}</div><div className="mt-5 flex items-center justify-between text-xs"><span className="text-slate-500">Last 24 hours</span><span className="font-semibold text-emerald-300">+12.4% <ArrowUpRight className="inline size-3" /></span></div><button type="button" onClick={() => setActiveView('Shop')} className="mt-6 flex w-full items-center justify-between rounded-xl border border-white/[0.08] px-4 py-3 text-sm text-slate-300 transition hover:border-cyan-300/30 hover:text-white"><span className="flex items-center gap-2"><Sparkles className="size-4 text-amber-300" />Scale your rig</span><ArrowUpRight className="size-4 text-slate-500" /></button></section>
@@ -235,15 +262,15 @@ function WhitepaperView() {
       </header>
       <div className="grid gap-5 lg:grid-cols-2">
         <WhitepaperSection title="1. Entstehung des Coins" eyebrow="Origin" text="CMR entsteht nicht durch echte Geräte- oder Browser-Rechenleistung. Ein serverseitig validierter Mining-Zyklus zeichnet freiwillige Teilnahme auf und vergibt eine nachvollziehbare Punktmenge. Die Basisrate, Zyklusdauer, Streaks und Multiplikatoren werden als öffentliche Produktregeln dokumentiert und können nicht heimlich aus dem Client verändert werden." />
-        <WhitepaperSection title="2. Technische Umsetzung" eyebrow="Implementation" text="Die App trennt Oberfläche, API und Datenmodell. Der Server prüft Session oder Wallet-Kontext, Startzeit, Zyklusstatus und Limits. Ereignisse werden unveränderlich protokolliert; Eingaben werden validiert, Auszahlungen bleiben bis zu einer späteren, geprüften On-Chain-Phase deaktiviert. Wallet-Adressen werden niemals als private Schlüssel behandelt." />
-        <WhitepaperSection title="3. Sicherheitskonformes Verhalten" eyebrow="Security" text="Keine Seed-Phrase und kein Private Key wird abgefragt oder gespeichert. Signaturen dürfen nur eine Wallet kontrollieren, nicht automatisch Werte übertragen. Rate-Limits, serverseitige Zeit, Replay-Schutz, Moderationspfade und transparente Fehler werden vor jeder öffentlichen Belohnungsfunktion ergänzt. Abhängigkeiten und Smart Contracts werden vor Einsatz geprüft und auditiert." />
+        <WhitepaperSection title="2. Technische Umsetzung" eyebrow="Implementation" text="Die App trennt Oberfläche, API und Datenmodell. Der Server prüft Session oder Wallet-Kontext, Startzeit, Zyklusstatus und Limits. Ereignisse werden unveränderlich protokolliert; Eingaben werden validiert. Festgelegte Umrechnung: 1 verifizierter CMR-Punkt entspricht 1 BRATE-Claim-Einheit. Es gibt keinen Mindestbetrag; Claims werden nur einmal und nur für tatsächlich verifizierte Punkte zugelassen. Wallet-Adressen werden niemals als private Schlüssel behandelt." />
+        <WhitepaperSection title="3. Sicherheitskonformes Verhalten" eyebrow="Security" text="Keine Seed-Phrase und kein Private Key wird abgefragt oder gespeichert. Der Claim wird serverseitig berechnet, mit einer eindeutigen Claim-ID und Replay-Schutz gespeichert und erst nach Wallet-Bestätigung ausgeführt. Die App signiert keine Transaktion heimlich. Der aktuelle BRATE-Contract wird ausschließlich für Balance-Lesen genutzt; eine Auszahlung startet erst nach separater Claim-/Distributor-Prüfung, Rollenprüfung, Testnet-Test und Audit. Rate-Limits, serverseitige Zeit, Moderationspfade und transparente Fehler sind verpflichtend." />
         <WhitepaperSection title="4. Kreislauf und Nutzen" eyebrow="Utility loop" text="Teilnahme erzeugt Punkte. Punkte können innerhalb der App Status, kosmetische Freischaltungen, Community-Zugänge oder Rabatte auf klar beschriebene Leistungen ermöglichen. Einnahmen und Ressourcen des Ökosystems sollten nachvollziehbar dokumentiert werden; keine Funktion darf eine Rendite oder einen Marktpreis versprechen." />
         <WhitepaperSection title="5. MMORPG-Vision" eyebrow="Game layer" text="Das MMORPG kann die gleiche Identität und den gleichen Fortschritt nutzen: Spieler erkunden Regionen, erfüllen kooperative Quests, bauen Gemeinschaften auf und sammeln nicht-finanzielle Fortschrittswerte. CMR kann später für kosmetische Gegenstände, Housing-Dekoration, Crafting-Rezepte, Emotes, Mount-Skins oder saisonale Events eingesetzt werden." />
         <WhitepaperSection title="6. Faire In-Game-Ökonomie" eyebrow="Game economy" text="Gameplay bleibt auch ohne Kauf vollständig spielbar. Gegenstände werden nach Seltenheit, Nutzwert und Herkunft gekennzeichnet; Zufallsboxen mit bezahltem Vorteil werden vermieden. Handel, falls aktiviert, erhält Gebührenlimits, Betrugsschutz, Rückerstattungsregeln und eine klare Trennung zwischen kosmetischem Besitz und echtem Vermögenswert." />
       </div>
       <section className="rounded-3xl border border-white/[0.08] bg-white/[0.035] p-6 sm:p-8">
         <p className="text-xs font-bold uppercase tracking-[0.22em] text-cyan-300">Roadmap</p>
-        <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">{['Foundation: PoP, Datenmodell, Regeln', 'Trust: Auth, Anti-Abuse, Audit logs', 'World: MMORPG prototype, quests, items', 'Utility: geprüfte Integrationen, Governance'].map((phase, index) => <div key={phase} className="rounded-2xl border border-white/[0.08] bg-[#0b0f17]/70 p-4"><p className="text-xs font-bold text-emerald-300">0{index + 1}</p><p className="mt-3 text-sm font-semibold leading-6 text-slate-200">{phase}</p></div>)}</div>
+        <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">{['Festgelegt: 1 CMR = 1 BRATE, kein Mindestbetrag', 'Claim: Distributor, Replay-Schutz, Rollenprüfung, Audit', 'World: MMORPG-Prototyp, Quests, Items', 'Utility: Governance und geprüfte Onchain-Nutzung'].map((phase, index) => <div key={phase} className="rounded-2xl border border-white/[0.08] bg-[#0b0f17]/70 p-4"><p className="text-xs font-bold text-emerald-300">0{index + 1}</p><p className="mt-3 text-sm font-semibold leading-6 text-slate-200">{phase}</p></div>)}</div>
       </section>
       <footer className="rounded-3xl border border-cyan-300/15 bg-cyan-300/[0.04] p-5 text-xs leading-6 text-slate-400 sm:p-6">
         <p className="font-semibold text-slate-200">Copyright und Urheberhinweis</p>
