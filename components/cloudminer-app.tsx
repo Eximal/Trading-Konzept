@@ -200,8 +200,8 @@ export function CloudMinerApp() {
         {activeView === 'Miner OS' && <MinerOsView isMining={isMining} setIsMining={setIsMining} />}
       </main>
 
-      <nav className="fixed inset-x-4 bottom-4 z-30 flex justify-around rounded-2xl border border-white/[0.1] bg-[#111722]/90 p-2 shadow-2xl backdrop-blur-xl md:hidden" aria-label="Mobile navigation">
-        {navItems.map((item) => { const Icon = item.icon; return <button key={item.label} type="button" onClick={() => setActiveView(item.label)} className={`flex min-w-0 flex-1 flex-col items-center gap-1 overflow-hidden rounded-xl px-0.5 py-2 text-[8px] font-semibold ${activeView === item.label ? 'bg-cyan-300/10 text-cyan-300' : 'text-slate-500'}`}><Icon className="size-4" aria-hidden="true" />{item.label}</button> })}
+      <nav className="fixed inset-x-4 bottom-4 z-30 flex gap-1 overflow-x-auto rounded-2xl border border-white/[0.1] bg-[#111722]/90 p-2 shadow-2xl backdrop-blur-xl md:hidden" aria-label="Mobile navigation">
+        {navItems.map((item) => { const Icon = item.icon; return <button key={item.label} type="button" onClick={() => setActiveView(item.label)} className={`flex min-w-[58px] shrink-0 flex-col items-center gap-1 rounded-xl px-1 py-2 text-[8px] font-semibold ${activeView === item.label ? 'bg-cyan-300/10 text-cyan-300' : 'text-slate-500'}`}><Icon className="size-4" aria-hidden="true" />{item.label}</button> })}
       </nav>
     </div>
   )
