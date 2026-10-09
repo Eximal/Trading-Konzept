@@ -154,7 +154,7 @@ export function CloudMinerApp() {
     <div className="min-h-dvh overflow-x-hidden bg-[#0b0f17] text-slate-100">
       <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_50%_-10%,rgba(34,211,238,0.12),transparent_36%),radial-gradient(circle_at_90%_55%,rgba(74,222,128,0.06),transparent_28%)]" />
       <header className="sticky top-0 z-30 border-b border-white/[0.07] bg-[#0b0f17]/85 backdrop-blur-xl">
-        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-3 px-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-3">
             <div className="flex size-9 items-center justify-center rounded-xl border border-cyan-300/25 bg-cyan-300/10 text-cyan-300 shadow-[0_0_28px_rgba(34,211,238,0.16)]">
               <Pickaxe className="size-5" aria-hidden="true" />
@@ -164,10 +164,10 @@ export function CloudMinerApp() {
               <p className="hidden text-[9px] font-semibold uppercase tracking-[0.28em] text-slate-500 sm:block">Proof of participation</p>
             </div>
           </div>
-          <nav className="hidden items-center gap-1 rounded-xl border border-white/[0.07] bg-white/[0.025] p-1 md:flex" aria-label="Primary navigation">
+          <nav className="hidden min-w-0 max-w-[56vw] items-center gap-1 overflow-x-auto rounded-xl border border-white/[0.07] bg-white/[0.025] p-1 xl:flex" aria-label="Primary navigation">
             {navItems.map((item) => {
               const Icon = item.icon
-              return <button key={item.label} type="button" onClick={() => setActiveView(item.label)} className={`flex items-center gap-2 rounded-lg px-4 py-2 text-xs font-semibold transition ${activeView === item.label ? 'bg-white/10 text-white' : 'text-slate-500 hover:text-slate-200'}`}><Icon className="size-3.5" aria-hidden="true" />{item.label}</button>
+              return <button key={item.label} type="button" onClick={() => setActiveView(item.label)} className={`flex shrink-0 items-center gap-1.5 rounded-lg px-2.5 py-2 text-[11px] font-semibold transition ${activeView === item.label ? 'bg-white/10 text-white' : 'text-slate-500 hover:text-slate-200'}`}><Icon className="size-3.5" aria-hidden="true" />{item.label}</button>
             })}
           </nav>
           <div className="flex items-center gap-2">
@@ -181,12 +181,12 @@ export function CloudMinerApp() {
               <span className="hidden sm:inline">Install app</span>
             </button>
             <div className="hidden sm:block"><WalletButton /></div>
-            <button type="button" className="flex size-10 items-center justify-center rounded-xl border border-white/[0.08] text-slate-400 md:hidden" aria-label="Open menu"><Menu className="size-5" /></button>
+            <button type="button" className="flex size-10 items-center justify-center rounded-xl border border-white/[0.08] text-slate-400 xl:hidden" aria-label="Open menu"><Menu className="size-5" /></button>
           </div>
         </div>
       </header>
 
-      <main className="relative mx-auto min-w-0 max-w-7xl px-4 pb-40 pt-7 sm:px-6 sm:pb-32 lg:px-8 lg:pb-12">
+      <main className="relative mx-auto min-w-0 max-w-6xl px-4 pb-40 pt-7 sm:px-6 sm:pb-32 lg:px-8 lg:pb-12">
         <div className="mb-7 flex items-end justify-between gap-4">
           <div>
             <p className="mb-2 flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.25em] text-cyan-300"><span className="size-1.5 rounded-full bg-cyan-300 shadow-[0_0_10px_currentColor]" />Protocol online</p>
@@ -209,7 +209,7 @@ export function CloudMinerApp() {
         {activeView === 'Governance' && <GovernanceView />}
       </main>
 
-      <nav className="fixed inset-x-4 bottom-4 z-30 flex gap-1 overflow-x-auto rounded-2xl border border-white/[0.1] bg-[#111722]/90 p-2 shadow-2xl backdrop-blur-xl md:hidden" aria-label="Mobile navigation">
+      <nav className="fixed inset-x-4 bottom-4 z-30 flex gap-1 overflow-x-auto rounded-2xl border border-white/[0.1] bg-[#111722]/90 p-2 shadow-2xl backdrop-blur-xl xl:hidden" aria-label="Mobile navigation">
         {navItems.map((item) => { const Icon = item.icon; return <button key={item.label} type="button" onClick={() => setActiveView(item.label)} className={`flex min-w-[58px] shrink-0 flex-col items-center gap-1 rounded-xl px-1 py-2 text-[8px] font-semibold ${activeView === item.label ? 'bg-cyan-300/10 text-cyan-300' : 'text-slate-500'}`}><Icon className="size-4" aria-hidden="true" />{item.label}</button> })}
       </nav>
     </div>
