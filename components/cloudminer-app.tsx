@@ -171,6 +171,7 @@ export function CloudMinerApp() {
               return <button key={item.label} type="button" onClick={() => setActiveView(item.label)} className={`flex shrink-0 items-center gap-1.5 rounded-lg px-2.5 py-2 text-[11px] font-semibold transition ${activeView === item.label ? 'bg-white/10 text-white' : 'text-slate-500 hover:text-slate-200'}`}><Icon className="size-3.5" aria-hidden="true" />{item.label}</button>
             })}
           </nav>
+          <UniversalClock />
           <div className="flex items-center gap-2">
             <button
               type="button"
@@ -236,6 +237,16 @@ function DashboardView({ isMining, setIsMining, tokens, balance, totalHashrate, 
 function NetworkMapCard() {
   const nodes = [{ name: 'Base', className: 'left-[15%] top-[27%]', tone: 'bg-cyan-300' }, { name: 'CloudChain', className: 'left-[51%] top-[18%]', tone: 'bg-violet-300' }, { name: 'Gang Banana', className: 'left-[68%] top-[62%]', tone: 'bg-amber-300' }, { name: 'Miner OS', className: 'left-[20%] top-[72%]', tone: 'bg-emerald-300' }]
   return <section className="min-w-0 rounded-3xl border border-violet-300/15 bg-violet-300/[0.04] p-5 sm:p-7"><div className="flex items-start justify-between gap-3"><div><p className="text-xs font-semibold uppercase tracking-[0.22em] text-violet-200">Network distribution</p><h2 className="mt-2 text-lg font-bold text-white">Ecosystem map</h2><p className="mt-2 max-w-xl text-xs leading-5 text-slate-500">A live schematic of the connected network layers. This is a topology view, not a geographic map.</p></div><span className="rounded-lg bg-violet-300/10 px-2 py-1 text-[10px] font-bold text-violet-200">4 nodes</span></div><div className="relative mt-6 h-56 overflow-hidden rounded-2xl border border-white/[0.08] bg-[#0b0f17]" aria-label="Network topology visualization"><div className="absolute inset-0 opacity-30" style={{ backgroundImage: 'linear-gradient(rgba(148,163,184,0.12) 1px, transparent 1px), linear-gradient(90deg, rgba(148,163,184,0.12) 1px, transparent 1px)', backgroundSize: '32px 32px' }} /><div className="absolute left-[20%] top-[33%] h-px w-[36%] rotate-[-10deg] bg-gradient-to-r from-cyan-300/70 to-violet-300/70" /><div className="absolute left-[57%] top-[42%] h-px w-[22%] rotate-[38deg] bg-gradient-to-r from-violet-300/70 to-amber-300/70" /><div className="absolute left-[28%] top-[68%] h-px w-[42%] rotate-[-8deg] bg-gradient-to-r from-emerald-300/70 to-amber-300/70" />{nodes.map((node) => <div key={node.name} className={`absolute ${node.className} -translate-x-1/2 -translate-y-1/2`}><div className={`mx-auto size-3 rounded-full ${node.tone} shadow-[0_0_16px_currentColor]`} /><span className="mt-2 block whitespace-nowrap rounded-full border border-white/10 bg-[#111722]/90 px-2 py-1 text-[10px] font-semibold text-slate-300">{node.name}</span></div>)}<div className="absolute left-1/2 top-1/2 size-5 -translate-x-1/2 -translate-y-1/2 rounded-full border-4 border-cyan-300/30 bg-cyan-300 shadow-[0_0_28px_rgba(34,211,238,0.8)]" aria-label="CloudMiner hub" /></div><div className="mt-4 grid grid-cols-2 gap-2 text-[10px] text-slate-500 sm:grid-cols-4">{[['Base', 'Onchain'], ['CloudChain', 'Testnet'], ['Gang Banana', 'Community'], ['Miner OS', 'Runtime']].map(([label, status]) => <div key={label} className="rounded-xl border border-white/[0.07] px-3 py-2"><p className="font-semibold text-slate-300">{label}</p><p className="mt-1">{status}</p></div>)}</div></section>
+}
+
+function UniversalClock() {
+  const [now, setNow] = useState(() => new Date())
+  useEffect(() => {
+    const timer = window.setInterval(() => setNow(new Date()), 1000)
+    return () => window.clearInterval(timer)
+  }, [])
+  const formatTime = (timeZone: string) => new Intl.DateTimeFormat('en-GB', { timeZone, hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }).format(now)
+  return <div className="flex min-w-0 items-center gap-1.5 rounded-xl border border-white/[0.08] bg-white/[0.025] px-2 py-2 sm:gap-2 sm:px-2.5" aria-label="Universal network clock"><span className="size-1.5 animate-pulse rounded-full bg-cyan-300" /><div className="text-right leading-none"><p className="font-mono text-[10px] font-bold text-slate-200">UTC {formatTime('UTC')}</p><p className="mt-1 hidden text-[8px] font-semibold uppercase tracking-[0.16em] text-slate-600 sm:block">Universal time</p></div></div>
 }
 
 function Metric({ label, value, icon: Icon }: { label: string; value: string; icon: typeof Gauge }) { return <div className="flex items-center gap-2"><Icon className="hidden size-4 text-slate-600 sm:block" /><div><p className="text-[10px] uppercase tracking-wider text-slate-600">{label}</p><p className="mt-1 text-xs font-bold text-slate-200 sm:text-sm">{value}</p></div></div> }
