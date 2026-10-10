@@ -32,10 +32,12 @@ import {
   ShieldCheck,
   Zap,
   Vote,
+  Gem,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { WalletButton } from '@/components/wallet-button'
 import { MinerOsScene } from '@/components/miner-os-scene'
+import { NftVault } from '@/components/nft-vault'
 
 const BRATE_TOKEN_ADDRESS = '0xE0CB06A00524180fFbAE005d1010531b99e0A254' as const
 const brateTokenAbi = [
@@ -56,6 +58,7 @@ const upgrades = [
 const navItems = [
   { label: 'Dashboard', icon: LayoutDashboard },
   { label: 'Shop', icon: Store },
+  { label: 'NFT Vault', icon: Gem },
   { label: 'Wallet', icon: Wallet },
   { label: 'Whitepaper', icon: FileText },
   { label: 'Profile', icon: UserRound },
@@ -202,6 +205,7 @@ export function CloudMinerApp() {
 
         {activeView === 'Dashboard' && <DashboardView isMining={isMining} setIsMining={setIsMining} tokens={tokens} balance={balance} totalHashrate={totalHashrate} claimRewards={claimRewards} setActiveView={setActiveView} dropClaimed={dropClaimed} claimDrop={() => { setDropClaimed(true); setBalance((current) => current + 10); setNotice('Daily utility drop claimed: +10 CMR participation points.') }} inviteLink={inviteLink} inviteCopied={inviteCopied} copyInviteLink={copyInviteLink} brateBalance={brateBalance} brateSupply={brateSupply} brateSymbol={brateSymbol} brateOwnerLabel={brateOwnerLabel} isBrateLoading={isBrateLoading} isBrateError={isBrateError} chainId={chainId} />}
         {activeView === 'Shop' && <ShopView balance={balance} ownedUpgrades={ownedUpgrades} buyUpgrade={buyUpgrade} />}
+        {activeView === 'NFT Vault' && <NftVault />}
         {activeView === 'Wallet' && <WalletView balance={balance} amount={withdrawalAmount} setAmount={setWithdrawalAmount} address={targetAddress} setAddress={setTargetAddress} network={network} setNetwork={setNetwork} withdraw={withdraw} />}
         {activeView === 'Whitepaper' && <WhitepaperView />}
         {activeView === 'Profile' && <ProfileView address={address} isConnected={isConnected} balance={balance} />}
