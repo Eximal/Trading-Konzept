@@ -1,8 +1,5 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  typescript: {
-    ignoreBuildErrors: true,
-  },
   images: {
     unoptimized: true,
   },
@@ -27,7 +24,7 @@ const nextConfig = {
               "style-src 'self' 'unsafe-inline'",
               "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
               "font-src 'self' data:",
-              "frame-src 'self' https://verify.walletconnect.com https://verify.walletconnect.org https://secure.walletconnect.org",
+              "frame-src 'self' https://w.soundcloud.com https://soundcloud.com https://verify.walletconnect.com https://verify.walletconnect.org https://secure.walletconnect.org",
               "connect-src 'self' https: wss:",
             ].join('; '),
           },
