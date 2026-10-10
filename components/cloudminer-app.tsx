@@ -33,6 +33,7 @@ import {
   Zap,
   Vote,
   Gem,
+  Music,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { WalletButton } from '@/components/wallet-button'
@@ -57,6 +58,7 @@ const upgrades = [
 
 const navItems = [
   { label: 'Dashboard', icon: LayoutDashboard },
+  { label: 'Music', icon: Music },
   { label: 'Shop', icon: Store },
   { label: 'NFT Vault', icon: Gem },
   { label: 'Wallet', icon: Wallet },
@@ -203,7 +205,8 @@ export function CloudMinerApp() {
 
         {notice && <div role="status" className="mb-5 flex items-center justify-between rounded-xl border border-cyan-300/20 bg-cyan-300/[0.07] px-4 py-3 text-sm text-cyan-100"><span>{notice}</span><button type="button" onClick={() => setNotice('')} className="text-cyan-300">Dismiss</button></div>}
 
-        {activeView === 'Dashboard' && <DashboardView isMining={isMining} setIsMining={setIsMining} tokens={tokens} balance={balance} totalHashrate={totalHashrate} claimRewards={claimRewards} setActiveView={setActiveView} dropClaimed={dropClaimed} claimDrop={() => { setDropClaimed(true); setBalance((current) => current + 10); setNotice('Daily utility drop claimed: +10 CMR participation points.') }} inviteLink={inviteLink} inviteCopied={inviteCopied} copyInviteLink={copyInviteLink} brateBalance={brateBalance} brateSupply={brateSupply} brateSymbol={brateSymbol} brateOwnerLabel={brateOwnerLabel} isBrateLoading={isBrateLoading} isBrateError={isBrateError} chainId={chainId} />}
+        {activeView === 'Music' && <MusicView />}
+  {activeView === 'Dashboard' && <DashboardView isMining={isMining} setIsMining={setIsMining} tokens={tokens} balance={balance} totalHashrate={totalHashrate} claimRewards={claimRewards} setActiveView={setActiveView} dropClaimed={dropClaimed} claimDrop={() => { setDropClaimed(true); setBalance((current) => current + 10); setNotice('Daily utility drop claimed: +10 CMR participation points.') }} inviteLink={inviteLink} inviteCopied={inviteCopied} copyInviteLink={copyInviteLink} brateBalance={brateBalance} brateSupply={brateSupply} brateSymbol={brateSymbol} brateOwnerLabel={brateOwnerLabel} isBrateLoading={isBrateLoading} isBrateError={isBrateError} chainId={chainId} />}
         {activeView === 'Shop' && <ShopView balance={balance} ownedUpgrades={ownedUpgrades} buyUpgrade={buyUpgrade} />}
         {activeView === 'NFT Vault' && <NftVault />}
         {activeView === 'Wallet' && <WalletView balance={balance} amount={withdrawalAmount} setAmount={setWithdrawalAmount} address={targetAddress} setAddress={setTargetAddress} network={network} setNetwork={setNetwork} withdraw={withdraw} />}
@@ -251,6 +254,10 @@ function UniversalClock() {
   }, [])
   const formatTime = (timeZone: string) => new Intl.DateTimeFormat('en-GB', { timeZone, hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }).format(now)
   return <div className="flex min-w-0 items-center gap-1.5 rounded-xl border border-white/[0.08] bg-white/[0.025] px-2 py-2 sm:gap-2 sm:px-2.5" aria-label="Universal network clock"><span className="size-1.5 animate-pulse rounded-full bg-cyan-300" /><div className="text-right leading-none"><p className="font-mono text-[10px] font-bold text-slate-200">UTC {formatTime('UTC')}</p><p className="mt-1 hidden text-[8px] font-semibold uppercase tracking-[0.16em] text-slate-600 sm:block">Universal time</p></div></div>
+}
+
+function MusicView() {
+  return <section className="mx-auto flex min-w-0 max-w-4xl flex-col gap-5"><div className="rounded-3xl border border-fuchsia-300/20 bg-gradient-to-br from-fuchsia-300/15 via-white/[0.04] to-transparent p-6 sm:p-8"><p className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.22em] text-fuchsia-200"><Music className="size-4" /> CloudMiner radio</p><h2 className="mt-3 text-3xl font-black tracking-tight text-white sm:text-4xl">Soundtrack for the network.</h2><p className="mt-3 max-w-2xl text-sm leading-6 text-slate-300">Stream community music directly inside the dashboard through SoundCloud. Playback is hosted by SoundCloud and remains free to listen where the creator allows it.</p></div><div className="overflow-hidden rounded-3xl border border-white/[0.08] bg-white/[0.035] p-3 sm:p-5"><iframe title="SoundCloud community player" className="h-[166px] w-full rounded-2xl sm:h-[180px]" scrolling="no" frameBorder="no" allow="autoplay" src="https://w.soundcloud.com/player/?url=https%3A//soundcloud.com/soundcloud%2Fsets%2Fmusic" /><div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"><p className="text-xs leading-5 text-slate-500">The player may show SoundCloud advertising or require creator permissions. No music files are hosted by this app.</p><a href="https://soundcloud.com/" target="_blank" rel="noreferrer" className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-xl border border-fuchsia-300/25 px-4 py-2 text-xs font-bold text-fuchsia-200 transition hover:bg-fuchsia-300/10">Open SoundCloud</a></div></div></section>
 }
 
 function Metric({ label, value, icon: Icon }: { label: string; value: string; icon: typeof Gauge }) { return <div className="flex items-center gap-2"><Icon className="hidden size-4 text-slate-600 sm:block" /><div><p className="text-[10px] uppercase tracking-wider text-slate-600">{label}</p><p className="mt-1 text-xs font-bold text-slate-200 sm:text-sm">{value}</p></div></div> }
