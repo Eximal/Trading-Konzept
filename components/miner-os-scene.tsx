@@ -48,7 +48,7 @@ function MiningRig() {
 
 export function MinerOsScene() {
   return (
-    <div className="h-72 w-full overflow-hidden rounded-2xl border border-cyan-300/15 bg-[#07101e] sm:h-80" aria-label="Interactive 3D CloudMiner rig visualization" role="img">
+    <div className="relative h-64 w-full overflow-hidden rounded-2xl border border-cyan-300/15 bg-[#07101e] sm:h-80" aria-label="Interactive 3D CloudMiner rig visualization" role="img"><span className="pointer-events-none absolute left-3 top-3 z-10 rounded-lg border border-white/10 bg-[#07101e]/80 px-2 py-1 text-[9px] font-bold uppercase tracking-[0.16em] text-cyan-200">Drag to inspect rig</span>
       <Canvas shadows dpr={[1, 1.5]}>
         <PerspectiveCamera makeDefault position={[5.2, 3.1, 5.2]} fov={38} />
         <color attach="background" args={['#07101e']} />
