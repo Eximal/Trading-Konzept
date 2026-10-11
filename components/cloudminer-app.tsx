@@ -40,6 +40,7 @@ import { WalletButton } from '@/components/wallet-button'
 import { MinerOsScene } from '@/components/miner-os-scene'
 import { NftVault } from '@/components/nft-vault'
 import { MiningDashboard } from '@/components/mining-dashboard'
+import { DevicePreferences } from '@/components/device-preferences'
 
 const BRATE_TOKEN_ADDRESS = '0xE0CB06A00524180fFbAE005d1010531b99e0A254' as const
 const brateTokenAbi = [
@@ -189,6 +190,7 @@ export function CloudMinerApp() {
               <Download className="size-3.5" aria-hidden="true" />
               <span className="hidden sm:inline">Install app</span>
             </button>
+            <DevicePreferences />
             <div className="block"><WalletButton /></div>
             <button type="button" onClick={() => setMobileNavOpen((open) => !open)} className="flex size-10 shrink-0 items-center justify-center rounded-xl border border-white/[0.08] text-slate-400 xl:hidden" aria-label={mobileNavOpen ? 'Close menu' : 'Open menu'} aria-expanded={mobileNavOpen}><Menu className="size-5" /></button>
           </div>
