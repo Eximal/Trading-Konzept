@@ -13,35 +13,6 @@ type CycleRecord = {
 }
 
 const EMPTY: CycleRecord = { startedAt: null, cyclesCompleted: 0, totalClaimed: 0 }
-const STORAGE_PREFIX = 'jku:rig:'
-
-function storageKey(address?: string, chainId?: number) {
-  return `${STORAGE_PREFIX}${chainId ?? 'nochain'}:${address?.toLowerCase() ?? 'guest'}`
-}
-
-function readRecord(key: string): CycleRecord {
-  if (typeof window === 'undefined') return EMPTY
-  try {
-    const raw = window.localStorage.getItem(key)
-    if (!raw) return EMPTY
-    const parsed = JSON.parse(raw) as Partial<CycleRecord>
-    return {
-      startedAt: typeof parsed.startedAt === 'number' ? parsed.startedAt : null,
-      cyclesCompleted: parsed.cyclesCompleted ?? 0,
-      totalClaimed: parsed.totalClaimed ?? 0,
-    }
-  } catch {
-    return EMPTY
-  }
-}
-
-function writeRecord(key: string, record: CycleRecord) {
-  try {
-    window.localStorage.setItem(key, JSON.stringify(record))
-  } catch {
-    /* storage unavailable (private mode) — cycle still runs in memory */
-  }
-}
 
 type ParticipationResponse = {
   activeCycle?: { startedAt?: string | number | Date } | null
@@ -71,16 +42,14 @@ async function syncParticipation(
 }
 
 /**
- * Drives the 24h mining cycle. Persisted per wallet + chain in localStorage so a
- * refresh, tab close, or PWA relaunch resumes the exact same countdown.
+ * Drives the 24h mining cycle. The connected wallet and server participation API
+ * are the source of truth; the in-memory state only renders the current session.
  *
  * `activate` / `claim` are async so they can be swapped for wagmi
  * `writeContract` calls once the mining contract is deployed.
  */
 export function useMiningCycle(rewardPerCycle: number) {
   const { address, chainId } = useAccount()
-  const key = storageKey(address, chainId)
-
   const [hydrated, setHydrated] = useState(false)
   const [record, setRecord] = useState<CycleRecord>(EMPTY)
   const [now, setNow] = useState(() => Date.now())
@@ -88,23 +57,20 @@ export function useMiningCycle(rewardPerCycle: number) {
   // Load persisted state on mount / wallet switch (client-only to avoid SSR mismatch).
   useEffect(() => {
     let cancelled = false
-    const localRecord = readRecord(key)
-    setRecord(localRecord)
+    setRecord(EMPTY)
     setNow(Date.now())
     setHydrated(true)
-    void syncParticipation(address, chainId, 'sync', localRecord.startedAt ?? undefined).then((remote) => {
-      if (cancelled || !remote?.activeCycle?.startedAt) return
-      const remoteStartedAt = new Date(remote.activeCycle.startedAt).getTime()
-      if (!Number.isFinite(remoteStartedAt)) return
-      const synced = { ...localRecord, startedAt: remoteStartedAt }
+    void syncParticipation(address, chainId, 'sync').then((remote) => {
+      if (cancelled) return
+      const remoteStartedAt = remote?.activeCycle?.startedAt ? new Date(remote.activeCycle.startedAt).getTime() : null
+      const synced: CycleRecord = { startedAt: Number.isFinite(remoteStartedAt) ? remoteStartedAt : null, cyclesCompleted: remote?.profile?.cyclesCompleted ?? 0, totalClaimed: Number(remote?.profile?.points ?? 0) }
       setRecord(synced)
-      writeRecord(key, synced)
       setNow(Date.now())
     })
     return () => {
       cancelled = true
     }
-  }, [address, chainId, key])
+  }, [address, chainId])
 
   // Single 1s ticker drives both the countdown and the live hashrate.
   useEffect(() => {
@@ -123,13 +89,9 @@ export function useMiningCycle(rewardPerCycle: number) {
 
   const progress = record.startedAt ? elapsedMs / CYCLE_DURATION_MS : 0
 
-  const persist = useCallback(
-    (next: CycleRecord) => {
-      setRecord(next)
-      writeRecord(key, next)
-    },
-    [key],
-  )
+  const persist = useCallback((next: CycleRecord) => {
+    setRecord(next)
+  }, [])
 
   const activate = useCallback(async () => {
     if (status !== 'idle') return
