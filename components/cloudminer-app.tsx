@@ -188,8 +188,8 @@ export function CloudMinerApp() {
               <Download className="size-3.5" aria-hidden="true" />
               <span className="hidden sm:inline">Install app</span>
             </button>
-            <div className="hidden sm:block"><WalletButton /></div>
-            <button type="button" onClick={() => setMobileNavOpen((open) => !open)} className="flex size-10 items-center justify-center rounded-xl border border-white/[0.08] text-slate-400 xl:hidden" aria-label={mobileNavOpen ? 'Close menu' : 'Open menu'} aria-expanded={mobileNavOpen}><Menu className="size-5" /></button>
+            <div className="block"><WalletButton /></div>
+            <button type="button" onClick={() => setMobileNavOpen((open) => !open)} className="flex size-10 shrink-0 items-center justify-center rounded-xl border border-white/[0.08] text-slate-400 xl:hidden" aria-label={mobileNavOpen ? 'Close menu' : 'Open menu'} aria-expanded={mobileNavOpen}><Menu className="size-5" /></button>
           </div>
         </div>
       </header>
