@@ -4,6 +4,14 @@ import { base, bsc, mainnet, monad } from 'wagmi/chains'
 /**
  * Minimal ABIs — only what the dashboard reads.
  */
+export const SHM_TOKEN_ADDRESS = '0x1318256319EA383aE6d57F334fD9597fFcfeA55e' as Address
+
+export const shmAbi = [
+  { type: 'function', name: 'balanceOf', stateMutability: 'view', inputs: [{ name: 'account', type: 'address' }], outputs: [{ name: '', type: 'uint256' }] },
+  { type: 'function', name: 'owner', stateMutability: 'view', inputs: [], outputs: [{ name: '', type: 'address' }] },
+  { type: 'function', name: 'mintTo', stateMutability: 'nonpayable', inputs: [{ name: 'to', type: 'address' }, { name: 'amount', type: 'uint256' }], outputs: [] },
+] as const
+
 export const erc20Abi = [
   {
     type: 'function',
