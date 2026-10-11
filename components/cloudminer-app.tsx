@@ -196,7 +196,7 @@ export function CloudMinerApp() {
           </div>
         </div>
       </header>
-      {mobileNavOpen && <div className="sticky top-16 z-20 border-b border-white/[0.07] bg-[#111722]/95 px-4 py-3 shadow-xl backdrop-blur-xl xl:hidden"><nav className="grid grid-cols-3 gap-2" aria-label="Expanded mobile navigation">{navItems.map((item) => { const Icon = item.icon; return <button key={item.label} type="button" onClick={() => { setActiveView(item.label); setMobileNavOpen(false) }} className={`flex min-h-11 items-center gap-2 rounded-xl px-3 text-left text-xs font-semibold ${activeView === item.label ? 'bg-cyan-300/10 text-cyan-200' : 'text-slate-400'}`}><Icon className="size-4" aria-hidden="true" />{item.label}</button> })}</nav></div>}
+      {mobileNavOpen && <div className="sticky top-16 z-50 max-h-[min(45vh,20rem)] overflow-y-auto border-b border-white/[0.07] bg-[#111722]/95 px-4 py-3 shadow-xl backdrop-blur-xl xl:hidden"><nav className="grid grid-cols-2 gap-2 sm:grid-cols-3" aria-label="Expanded mobile navigation">{navItems.map((item) => { const Icon = item.icon; return <button key={item.label} type="button" onClick={() => { setActiveView(item.label); setMobileNavOpen(false) }} className={`flex min-h-11 items-center gap-2 rounded-xl px-3 text-left text-xs font-semibold ${activeView === item.label ? 'bg-cyan-300/10 text-cyan-200' : 'text-slate-400'}`}><Icon className="size-4" aria-hidden="true" />{item.label}</button> })}</nav></div>}
 
       <main className="relative mx-auto min-w-0 max-w-6xl px-4 pb-40 pt-7 sm:px-6 sm:pb-32 lg:px-8 lg:pb-12">
         <div className="mb-7 flex items-end justify-between gap-4">
@@ -225,7 +225,7 @@ export function CloudMinerApp() {
 
       <nav className="fixed inset-x-4 bottom-4 z-30 flex items-center justify-between gap-1 rounded-2xl border border-white/[0.1] bg-[#111722]/95 p-2 shadow-2xl backdrop-blur-xl xl:hidden" aria-label="Mobile navigation">
         {navItems.slice(0, 3).map((item) => { const Icon = item.icon; return <button key={item.label} type="button" onClick={() => { setActiveView(item.label); setMobileNavOpen(false) }} className={`flex min-h-11 flex-1 flex-col items-center justify-center gap-1 rounded-xl px-1 py-1 text-[9px] font-semibold ${activeView === item.label ? 'bg-cyan-300/10 text-cyan-300' : 'text-slate-500'}`}><Icon className="size-4" aria-hidden="true" />{item.label}</button> })}
-        <button type="button" onClick={() => setMobileNavOpen((open) => !open)} className={`flex min-h-11 flex-1 flex-col items-center justify-center gap-1 rounded-xl px-1 py-1 text-[9px] font-semibold ${mobileNavOpen ? 'bg-cyan-300/10 text-cyan-300' : 'text-slate-500'}`} aria-expanded={mobileNavOpen}><Menu className="size-4" aria-hidden="true" />More</button>
+        <button type="button" onClick={() => setMobileNavOpen((open) => !open)} className={`flex min-h-11 flex-1 flex-col items-center justify-center gap-1 rounded-xl px-1 py-1 text-[9px] font-semibold ${mobileNavOpen || !navItems.slice(0, 3).some((item) => item.label === activeView) ? 'bg-cyan-300/10 text-cyan-300' : 'text-slate-500'}`} aria-expanded={mobileNavOpen}><Menu className="size-4" aria-hidden="true" />More</button>
       </nav>
     </div>
   )

@@ -72,7 +72,7 @@ export function PwaInstaller() {
 
   if (showInstructions && !installEvent) {
     return (
-      <div className="fixed inset-x-3 bottom-20 z-50 mx-auto max-w-md rounded-2xl border border-cyan-300/25 bg-card p-4 shadow-lg shadow-black/50">
+      <div className="fixed inset-x-3 bottom-24 z-40 sm:bottom-20 mx-auto max-w-md rounded-2xl border border-cyan-300/25 bg-card p-4 shadow-lg shadow-black/50">
         <div className="flex items-start gap-3">
           <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-cyan-300/10 text-cyan-300 ring-1 ring-cyan-300/30 ring-inset">
             <Download className="size-4" aria-hidden="true" />
@@ -95,7 +95,7 @@ export function PwaInstaller() {
   if (!visible || !installEvent) return null
 
   return (
-    <div className="fixed inset-x-3 bottom-20 z-50 mx-auto max-w-md rounded-2xl border border-cyan-300/25 bg-card p-3 shadow-lg shadow-black/50">
+    <div className="fixed inset-x-3 bottom-24 z-40 sm:bottom-20 mx-auto max-w-md rounded-2xl border border-cyan-300/25 bg-card p-3 shadow-lg shadow-black/50">
       <div className="flex items-start gap-3">
         <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-[#58a6ff]/12 text-[#58a6ff] ring-1 ring-[#58a6ff]/30 ring-inset">
           <Download className="size-4" aria-hidden="true" />
