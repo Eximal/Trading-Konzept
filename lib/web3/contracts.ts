@@ -12,6 +12,13 @@ export const shmAbi = [
   { type: 'function', name: 'mintTo', stateMutability: 'nonpayable', inputs: [{ name: 'to', type: 'address' }, { name: 'amount', type: 'uint256' }], outputs: [] },
 ] as const
 
+export const SHM_CLAIM_CONTRACT_ADDRESS = (process.env.NEXT_PUBLIC_SHM_CLAIM_CONTRACT ?? undefined) as Address | undefined
+
+export const shmClaimAbi = [
+  { type: 'function', name: 'claim', stateMutability: 'nonpayable', inputs: [{ name: 'amount', type: 'uint256' }, { name: 'nonce', type: 'uint256' }, { name: 'signature', type: 'bytes' }], outputs: [] },
+  { type: 'function', name: 'claimed', stateMutability: 'view', inputs: [{ name: 'account', type: 'address' }, { name: 'nonce', type: 'uint256' }], outputs: [{ name: '', type: 'bool' }] },
+] as const
+
 export const erc20Abi = [
   {
     type: 'function',
