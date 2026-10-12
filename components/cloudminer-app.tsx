@@ -258,18 +258,24 @@ function NetworkMapCard() {
 }
 
 function UniversalClock() {
-  const [now, setNow] = useState(() => new Date())
+  const [now, setNow] = useState<Date | null>(null)
+
   useEffect(() => {
-    const timer = window.setInterval(() => setNow(new Date()), 1000)
+    const update = () => setNow(new Date())
+    update()
+    const timer = window.setInterval(update, 1000)
     return () => window.clearInterval(timer)
   }, [])
+
+  const clockShell = 'flex min-w-0 items-center gap-2 rounded-xl border border-cyan-300/15 bg-cyan-300/[0.045] px-2.5 py-2'
+  if (!now) return <div className={clockShell} aria-label="Loading local time"><span className="size-1.5 shrink-0 rounded-full bg-cyan-300/50" /><div className="min-w-0 leading-none"><p className="font-mono text-[11px] font-bold text-white">--:--:--</p><p className="mt-1 text-[8px] font-semibold uppercase tracking-[0.14em] text-slate-500">Local time · UTC --:--:--</p></div></div>
 
   const localTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone
   const localTime = new Intl.DateTimeFormat(undefined, { hour: '2-digit', minute: '2-digit', second: '2-digit' }).format(now)
   const localDate = new Intl.DateTimeFormat(undefined, { weekday: 'short', day: '2-digit', month: 'short' }).format(now)
   const utcTime = new Intl.DateTimeFormat('en-GB', { timeZone: 'UTC', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }).format(now)
 
-  return <div className="flex min-w-0 items-center gap-2 rounded-xl border border-cyan-300/15 bg-cyan-300/[0.045] px-2.5 py-2" aria-label={`Local time ${localTime}, UTC ${utcTime}, timezone ${localTimeZone}`}><span className="size-1.5 shrink-0 animate-pulse rounded-full bg-cyan-300" /><div className="min-w-0 leading-none"><div className="flex items-baseline gap-2"><p className="font-mono text-[11px] font-bold text-white">{localTime}</p><span className="hidden text-[9px] font-bold uppercase tracking-[0.16em] text-cyan-200 sm:inline">Local</span></div><p className="mt-1 truncate text-[8px] font-semibold uppercase tracking-[0.14em] text-slate-500">{localDate} · UTC {utcTime}</p></div></div>
+  return <div className={clockShell} aria-label={`Local time ${localTime}, UTC ${utcTime}, timezone ${localTimeZone}`}><span className="size-1.5 shrink-0 animate-pulse rounded-full bg-cyan-300" /><div className="min-w-0 leading-none"><div className="flex items-baseline gap-2"><p className="font-mono text-[11px] font-bold text-white">{localTime}</p><span className="hidden text-[9px] font-bold uppercase tracking-[0.16em] text-cyan-200 sm:inline">Local</span></div><p className="mt-1 truncate text-[8px] font-semibold uppercase tracking-[0.14em] text-slate-500">{localDate} · UTC {utcTime}</p></div></div>
 }
 
 function MusicView() {
