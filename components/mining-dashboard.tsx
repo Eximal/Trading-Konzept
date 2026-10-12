@@ -28,6 +28,7 @@ export function MiningDashboard() {
   const { hashrate, history } = useHashrate(cycle.status === 'mining', boost.multiplier)
 
   const [claimed, setClaimed] = useState<number | null>(null)
+  const [shmError, setShmError] = useState<string | null>(null)
   useEffect(() => {
     if (claimed === null) return
     const id = window.setTimeout(() => setClaimed(null), 5000)
@@ -48,7 +49,12 @@ export function MiningDashboard() {
 
   async function claimShm() {
     if (!address || !isOwner || accrued <= 0) return
-    await writeContractAsync({ address: SHM_TOKEN_ADDRESS, abi: shmAbi, functionName: 'mintTo', args: [address, parseUnits(accrued.toFixed(6), 18)], chainId: 8453 })
+    setShmError(null)
+    try {
+      await writeContractAsync({ address: SHM_TOKEN_ADDRESS, abi: shmAbi, functionName: 'mintTo', args: [address, parseUnits(accrued.toFixed(6), 18)], chainId: 8453 })
+    } catch (error) {
+      setShmError(error instanceof Error ? error.message.slice(0, 180) : 'The SHM mint transaction could not be submitted.')
+    }
   }
 
   return (
@@ -66,7 +72,7 @@ export function MiningDashboard() {
         </div>
       )}
 
-      <section className="rounded-2xl border border-amber-300/20 bg-amber-300/[0.045] p-4" aria-labelledby="shm-onchain-title"><div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"><div><p id="shm-onchain-title" className="text-xs font-bold uppercase tracking-[0.18em] text-amber-200">SHM on Base</p><p className="mt-1 text-sm text-slate-300">On-chain balance: <strong className="font-mono text-white">{shmBalance !== undefined ? formatUnits(shmBalance, 18) : '—'} SHM</strong></p><p className="mt-1 text-[11px] text-slate-500">{isOwner ? 'Owner mintTo enabled for this wallet.' : 'Only the token owner can call mintTo. A public user claim needs a relayer or contract claim function.'}</p></div><Button type="button" onClick={() => void claimShm()} disabled={!isOwner || isMinting || isConfirming || !address} className="min-h-11 shrink-0 rounded-xl bg-amber-300 font-bold text-slate-950 hover:bg-amber-200">{isMinting ? 'Confirm in wallet…' : isConfirming ? 'Confirming…' : mintConfirmed ? 'SHM minted' : 'Claim SHM'}</Button></div>{mintHash && <a className="mt-3 block truncate text-[11px] text-cyan-200 underline" href={`https://basescan.org/tx/${mintHash}`} target="_blank" rel="noreferrer">View transaction on BaseScan</a>}</section>
+      <section className="rounded-2xl border border-amber-300/20 bg-amber-300/[0.045] p-4" aria-labelledby="shm-onchain-title"><div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"><div><p id="shm-onchain-title" className="text-xs font-bold uppercase tracking-[0.18em] text-amber-200">SHM on Base</p><p className="mt-1 text-sm text-slate-300">On-chain balance: <strong className="font-mono text-white">{shmBalance !== undefined ? formatUnits(shmBalance, 18) : '—'} SHM</strong></p><p className="mt-1 text-[11px] text-slate-500">{!isBase ? 'Switch your wallet to Base Mainnet to read SHM and claim.' : isOwner ? 'Owner mintTo enabled for this wallet.' : 'Only the token owner can call mintTo. A public user claim needs a relayer or contract claim function.'}</p></div><Button type="button" onClick={() => void claimShm()} disabled={!isOwner || isMinting || isConfirming || !address} className="min-h-11 shrink-0 rounded-xl bg-amber-300 font-bold text-slate-950 hover:bg-amber-200">{isMinting ? 'Confirm in wallet…' : isConfirming ? 'Confirming…' : mintConfirmed ? 'SHM minted' : 'Claim SHM'}</Button></div>{shmError && <p role="alert" className="mt-3 rounded-lg border border-red-300/20 bg-red-300/[0.06] px-3 py-2 text-[11px] text-red-200">{shmError}</p>}{mintHash && <a className="mt-3 block truncate text-[11px] text-cyan-200 underline" href={`https://basescan.org/tx/${mintHash}`} target="_blank" rel="noreferrer">View transaction on BaseScan</a>}</section>
 
       {claimed !== null && (
         <div
