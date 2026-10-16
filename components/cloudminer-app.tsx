@@ -101,12 +101,16 @@ export function CloudMinerApp() {
   const [balance, setBalance] = useState(0)
   const [withdrawalAmount, setWithdrawalAmount] = useState('')
   const [targetAddress, setTargetAddress] = useState('')
-  const [network, setNetwork] = useState('Base testnet')
+  const [network, setNetwork] = useState('Base Mainnet')
   const [ownedUpgrades, setOwnedUpgrades] = useState<string[]>([])
   const [notice, setNotice] = useState('')
   const [dropClaimed, setDropClaimed] = useState(false)
   const [inviteCopied, setInviteCopied] = useState(false)
-  const inviteLink = useMemo(() => `${typeof window !== 'undefined' ? window.location.origin : 'https://cloudminer.app'}?ref=JAKARAL-2024`, [])
+  const [inviteLink, setInviteLink] = useState('https://cloudminer.app?ref=JAKARAL-2024')
+
+  useEffect(() => {
+    setInviteLink(`${window.location.origin}?ref=JAKARAL-2024`)
+  }, [])
 
   const totalHashrate = useMemo(() => {
     const base = 10
@@ -156,7 +160,7 @@ export function CloudMinerApp() {
     }
     setBalance((current) => current - amount)
     setWithdrawalAmount('')
-    setNotice(`Testnet withdrawal queued on ${network}. No real token transfer was signed.`)
+    setNotice(`Withdrawal request queued on ${network}. No real token transfer was signed.`)
   }
 
   return (
@@ -203,7 +207,7 @@ export function CloudMinerApp() {
           <div>
             <p className="mb-2 flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.25em] text-cyan-300"><span className="size-1.5 rounded-full bg-cyan-300 shadow-[0_0_10px_currentColor]" />Protocol online</p>
             <h1 className="text-2xl font-black tracking-tight text-white sm:text-3xl">Your mining command center</h1>
-            <p className="mt-2 max-w-xl text-sm text-slate-500">Mine participation points, scale your rig, and turn activity into ecosystem utility.</p>
+            <p className="mt-2 max-w-xl text-sm text-slate-500">Mine participation points, track official SHM on Base, and turn activity into ecosystem utility.</p>
           </div>
           <div className="hidden items-center gap-2 text-right sm:flex"><div className="size-2 rounded-full bg-emerald-400 shadow-[0_0_12px_#4ade80]" /><span className="text-xs text-slate-400">All systems operational</span></div>
         </div>
@@ -238,7 +242,7 @@ function DashboardView({ isMining, setIsMining, tokens, balance, totalHashrate, 
       <div className="relative flex items-start justify-between gap-4"><div><p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">Live token counter</p><div className="mt-4 flex items-baseline gap-2"><span className="tabular text-4xl font-black tracking-tighter text-white sm:text-6xl">{formatTokens(tokens)}</span><span className="text-sm font-bold text-cyan-300">CMR</span></div><div className="mt-3 flex items-center gap-2 text-xs text-slate-500"><span className="size-2 rounded-full bg-emerald-400 shadow-[0_0_12px_#4ade80]" />Hashrate × 0.0001 points / second</div></div><span className={`rounded-full border px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider ${isMining ? 'border-emerald-400/30 bg-emerald-400/10 text-emerald-300' : 'border-slate-500/30 bg-slate-500/10 text-slate-400'}`}>{isMining ? 'Mining active' : 'Mining paused'}</span></div>
       <div className="relative mt-8 grid grid-cols-2 gap-3 border-t border-white/[0.08] pt-5 sm:grid-cols-4"><Metric label="Hashrate" value={`${totalHashrate.toFixed(1)} MH/s`} icon={Gauge} /><Metric label="Total earned" value={`${formatTokens(balance)} CMR`} icon={CircleDollarSign} /><Metric label="Efficiency" value="94.8%" icon={BatteryCharging} /><Metric label="Active rigs" value="03 / 05" icon={BarChart3} /></div>
       <MiningStrike isMining={isMining} />
-  <div className="mt-5 flex flex-col gap-3 sm:flex-row"><Button onClick={() => setIsMining(!isMining)} className="h-12 flex-1 rounded-xl bg-emerald-400 font-bold text-slate-950 hover:bg-emerald-300"><Power data-icon="inline-start" />{isMining ? 'Stop mining' : 'Start mining'}</Button><Button onClick={claimRewards} variant="outline" className="h-12 flex-1 rounded-xl border-cyan-300/30 bg-transparent font-bold text-cyan-200 hover:bg-cyan-300/10"><ArrowDownToLine data-icon="inline-start" />Claim rewards</Button></div>
+  <div className="mt-5 flex flex-col gap-3 sm:flex-row"><Button onClick={() => setIsMining(!isMining)} className="h-12 flex-1 rounded-xl bg-emerald-400 font-bold text-slate-950 hover:bg-emerald-300"><Power data-icon="inline-start" />{isMining ? 'Stop mining' : 'Start mining'}</Button><Button onClick={claimRewards} variant="outline" className="h-12 flex-1 rounded-xl border-cyan-300/30 bg-transparent font-bold text-cyan-200 hover:bg-cyan-300/10"><ArrowDownToLine data-icon="inline-start" />Claim participation points</Button></div>
     </section>
     <section className="min-w-0 rounded-3xl border border-[#58a6ff]/25 bg-[#58a6ff]/[0.05] p-5 sm:p-7"><div className="flex min-w-0 items-start justify-between gap-3"><div className="flex min-w-0 items-start gap-3"><img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/BB-tP04UaJUBR190Bw7PhwBLUT7loRGLf.jpeg" alt="Brate Banana Coin-Artwork" className="size-16 shrink-0 rounded-2xl border border-[#58a6ff]/30 object-cover shadow-[0_0_24px_rgba(88,166,255,0.2)]" /><div><p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#58a6ff]">Base onchain token</p><p className="mt-2 text-lg font-bold text-white">Brate Banana (BRATE)</p><p className="mt-2 text-xs leading-5 text-slate-400">Live balance from the token contract on Base. Contract uses 8 decimals.</p></div></div><CircleDollarSign className="size-5 shrink-0 text-[#58a6ff]" aria-hidden="true" /></div><div className="mt-5 flex flex-wrap items-end justify-between gap-4"><div><p className="break-all font-mono text-xl font-black text-white sm:text-2xl">{chainId !== 8453 ? 'Switch to Base' : isBrateLoading ? 'Reading...' : isBrateError ? 'Unavailable' : brateBalance ?? '0'} <span className="text-sm text-[#58a6ff]">BRATE</span></p><p className="mt-2 break-all font-mono text-[10px] text-slate-500">0xE0CB...e0A254 · {brateSymbol ?? 'BRATE'} · 8 decimals</p><p className="mt-1 text-[10px] text-slate-500">Supply: {brateSupply ?? '—'} · Owner: {brateOwnerLabel}</p></div><a href="https://basescan.org/token/0xE0CB06A00524180fFbAE005d1010531b99e0A254" target="_blank" rel="noreferrer" className="text-xs font-semibold text-[#58a6ff] hover:underline">View on BaseScan</a></div></section>
     <section className="rounded-3xl border border-amber-300/20 bg-amber-300/[0.05] p-5 sm:p-7"><div className="flex items-start justify-between gap-4"><div><p className="text-xs font-semibold uppercase tracking-[0.22em] text-amber-200">Daily utility drop</p><p className="mt-2 text-lg font-bold text-white">Community supply crate</p><p className="mt-2 text-xs leading-5 text-slate-400">A small participation bonus for returning miners. No cash value or guaranteed future reward.</p></div><Sparkles className="size-5 shrink-0 text-amber-300" /></div><div className="mt-6 flex items-center justify-between rounded-xl border border-amber-300/15 bg-black/10 px-4 py-3"><span className="text-sm font-semibold text-amber-100">+10 CMR points</span><Button type="button" size="sm" onClick={claimDrop} disabled={dropClaimed} className="rounded-lg bg-amber-300 font-bold text-slate-950 hover:bg-amber-200">{dropClaimed ? 'Claimed' : 'Claim drop'}</Button></div></section>

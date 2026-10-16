@@ -100,12 +100,12 @@ export function useMiningCycle(rewardPerCycle: number) {
       const startedAt = Date.now()
       persist({ ...record, startedAt })
       const remote = await syncParticipation(address, chainId, 'activate', startedAt)
-      const authoritativeStart = remote?.activeCycle?.startedAt
-        ? new Date(remote.activeCycle.startedAt).getTime()
-        : startedAt
-      if (Number.isFinite(authoritativeStart) && authoritativeStart !== startedAt) {
-        persist({ ...record, startedAt: authoritativeStart })
+      if (!remote?.activeCycle?.startedAt) {
+        persist(record)
+        throw new Error('Mining could not be activated on the server.')
       }
+      const authoritativeStart = new Date(remote.activeCycle.startedAt).getTime()
+      if (Number.isFinite(authoritativeStart)) persist({ ...record, startedAt: authoritativeStart })
     } finally {
       setPending(null)
     }
@@ -116,12 +116,13 @@ export function useMiningCycle(rewardPerCycle: number) {
     setPending('claim')
     try {
       const claimed = rewardPerCycle
+      const remote = await syncParticipation(address, chainId, 'claim')
+      if (!remote?.profile) throw new Error('Reward claim could not be confirmed by the server.')
       persist({
         startedAt: null,
-        cyclesCompleted: record.cyclesCompleted + 1,
-        totalClaimed: record.totalClaimed + claimed,
+        cyclesCompleted: Number(remote.profile.cyclesCompleted ?? record.cyclesCompleted + 1),
+        totalClaimed: Number(remote.profile.points ?? record.totalClaimed + claimed),
       })
-      void syncParticipation(address, chainId, 'claim')
       return claimed
     } finally {
       setPending(null)
