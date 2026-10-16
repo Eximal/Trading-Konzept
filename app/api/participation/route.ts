@@ -16,7 +16,7 @@ function validate(payload: Payload) {
   const walletAddress = payload.walletAddress?.toLowerCase()
   if (!walletAddress || !ADDRESS.test(walletAddress)) throw new Error('Invalid wallet address')
   const chainId = Number(payload.chainId)
-  if (!Number.isInteger(chainId) || chainId <= 0) throw new Error('Invalid chain')
+  if (chainId !== 8453) throw new Error('Only Base Mainnet is supported')
   return { walletAddress, chainId }
 }
 
@@ -38,9 +38,7 @@ export async function POST(request: Request) {
       const active = await db.select().from(participationCycles).where(and(eq(participationCycles.walletAddress, walletAddress), eq(participationCycles.status, 'active'))).limit(1)
       if (!active[0]) {
         const requestedStart = payload.startedAt && Number.isFinite(payload.startedAt) ? payload.startedAt : now.getTime()
-        if (requestedStart > now.getTime() + 30_000 || requestedStart < now.getTime() - 30_000) {
-          throw new Error('Invalid cycle start time')
-        }
+        if (Math.abs(requestedStart - now.getTime()) > 30_000) throw new Error('Invalid cycle start time')
         await db.insert(participationCycles).values({ walletAddress, chainId, startedAt: now, status: 'active' })
         await db.insert(participationEvents).values({ walletAddress, chainId, eventType: 'cycle_started', metadata: { source: 'web' } })
       }
