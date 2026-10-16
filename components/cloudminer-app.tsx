@@ -106,7 +106,11 @@ export function CloudMinerApp() {
   const [notice, setNotice] = useState('')
   const [dropClaimed, setDropClaimed] = useState(false)
   const [inviteCopied, setInviteCopied] = useState(false)
-  const inviteLink = useMemo(() => `${typeof window !== 'undefined' ? window.location.origin : 'https://cloudminer.app'}?ref=JAKARAL-2024`, [])
+  const [inviteLink, setInviteLink] = useState('https://cloudminer.app?ref=JAKARAL-2024')
+
+  useEffect(() => {
+    setInviteLink(`${window.location.origin}?ref=JAKARAL-2024`)
+  }, [])
 
   const totalHashrate = useMemo(() => {
     const base = 10
