@@ -4,6 +4,7 @@ import { isAddress, parseUnits, type Address, type Hex } from 'viem'
 
 const BASE_CHAIN_ID = 8453
 const MAX_DAILY_SHM = 1000
+const MIN_CLAIM_SHM = 0.000001
 const SHM_DECIMALS = 18
 const PROOF_COOLDOWN_MS = 60 * 60 * 1000
 const proofIssuedAt = new Map<string, number>()
@@ -25,7 +26,7 @@ export async function POST(request: Request) {
     if (!walletAddress || !isAddress(walletAddress) || payload.chainId !== BASE_CHAIN_ID) {
       return NextResponse.json({ error: 'A valid Base Mainnet wallet is required.' }, { status: 400 })
     }
-    if (!amount || !/^\d+(\.\d{1,6})?$/.test(amount) || Number(amount) <= 0 || Number(amount) > MAX_DAILY_SHM) {
+    if (!amount || !/^\d+(\.\d{1,6})?$/.test(amount) || Number(amount) < MIN_CLAIM_SHM || Number(amount) > MAX_DAILY_SHM) {
       return NextResponse.json({ error: 'Reward amount is outside the allowed range.' }, { status: 400 })
     }
     if (nonce === undefined || expiresAt === undefined || !Number.isSafeInteger(nonce) || nonce < 0 || !Number.isSafeInteger(expiresAt) || expiresAt <= Math.floor(Date.now() / 1000) || expiresAt > Math.floor(Date.now() / 1000) + 900) {
