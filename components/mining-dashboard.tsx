@@ -54,8 +54,8 @@ export function MiningDashboard() {
       const amount = accrued.toFixed(6)
       const nonce = Math.floor(Date.now() / 1000)
       const proofResponse = await fetch('/api/rewards/proof', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ walletAddress: address, chainId: 8453, amount, nonce, expiresAt: Math.floor(Date.now() / 1000) + 600 }) })
-      const proof = await proofResponse.json() as { error?: string; amountWei?: string; nonce?: number; expiresAt?: number; signature?: `0x${string}` }
-      if (!proofResponse.ok || !proof.amountWei || proof.nonce === undefined || !proof.expiresAt || !proof.signature) throw new Error(proof.error ?? 'Reward proof unavailable.')
+      const proof = await proofResponse.json() as { error?: string; amountWei?: string; nonce?: string; expiresAt?: number; signature?: `0x${string}` }
+      if (!proofResponse.ok || !proof.amountWei || !proof.nonce || !proof.expiresAt || !proof.signature) throw new Error(proof.error ?? 'Reward proof unavailable.')
       writeContract({ address: SHM_CLAIM_CONTRACT_ADDRESS, abi: shmClaimAbi, functionName: 'claim', args: [BigInt(proof.amountWei), BigInt(proof.nonce), BigInt(proof.expiresAt), proof.signature], chainId: 8453 })
     } catch (error) {
       setShmError(error instanceof Error ? error.message.slice(0, 180) : 'Unable to prepare the SHM claim.')

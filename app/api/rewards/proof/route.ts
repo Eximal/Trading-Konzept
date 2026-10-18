@@ -5,6 +5,8 @@ import { isAddress, parseUnits, type Address, type Hex } from 'viem'
 const BASE_CHAIN_ID = 8453
 const MAX_DAILY_SHM = 1000
 const SHM_DECIMALS = 18
+const PROOF_COOLDOWN_MS = 60 * 60 * 1000
+const proofIssuedAt = new Map<string, number>()
 
 function getSigner() {
   const key = process.env.SHM_REWARD_SIGNER_PRIVATE_KEY
@@ -30,20 +32,32 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Invalid or expired reward proof parameters.' }, { status: 400 })
     }
 
+    const normalizedWallet = walletAddress.toLowerCase()
+    const lastIssued = proofIssuedAt.get(normalizedWallet) ?? 0
+    if (Date.now() - lastIssued < PROOF_COOLDOWN_MS) {
+      return NextResponse.json({ error: 'A reward proof was already issued recently.' }, { status: 429 })
+    }
+
     const signer = getSigner()
     const claimContract = process.env.NEXT_PUBLIC_SHM_CLAIM_CONTRACT
+    if (process.env.SHM_REWARDS_LIVE !== 'true') {
+      return NextResponse.json({ error: 'Reward proofs are disabled until production verification is complete.' }, { status: 503, headers: { 'cache-control': 'no-store' } })
+    }
     if (!signer || !claimContract || !isAddress(claimContract)) {
       return NextResponse.json({ error: 'Reward proof service is not configured.' }, { status: 503 })
     }
 
+    const serverNonce = BigInt(Date.now())
+    const serverExpiresAt = Math.min(expiresAt, Math.floor(Date.now() / 1000) + 600)
     const signature = await signer.signTypedData({
       domain: { name: 'SHM Rewards', version: '1', chainId: BASE_CHAIN_ID, verifyingContract: claimContract as Address },
       types: { Reward: [{ name: 'account', type: 'address' }, { name: 'amount', type: 'uint256' }, { name: 'nonce', type: 'uint256' }, { name: 'expiresAt', type: 'uint256' }] },
       primaryType: 'Reward',
-      message: { account: walletAddress as Address, amount: parseUnits(amount, SHM_DECIMALS), nonce: BigInt(nonce), expiresAt: BigInt(expiresAt) },
+      message: { account: normalizedWallet as Address, amount: parseUnits(amount, SHM_DECIMALS), nonce: serverNonce, expiresAt: BigInt(serverExpiresAt) },
     })
 
-    return NextResponse.json({ amount, amountWei: parseUnits(amount, SHM_DECIMALS).toString(), nonce, expiresAt, signature, signer: signer.address, contract: claimContract })
+    proofIssuedAt.set(normalizedWallet, Date.now())
+    return NextResponse.json({ amount, amountWei: parseUnits(amount, SHM_DECIMALS).toString(), nonce: serverNonce.toString(), expiresAt: serverExpiresAt, signature, contract: claimContract })
   } catch {
     return NextResponse.json({ error: 'Unable to create reward proof.' }, { status: 500 })
   }
