@@ -3,10 +3,10 @@
 import { useModal } from 'connectkit'
 import { TriangleAlert } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import { useAccount, useReadContract, useSwitchChain } from 'wagmi'
+import { useAccount, useReadContract, useSwitchChain, useWaitForTransactionReceipt, useWriteContract } from 'wagmi'
 import { formatUnits } from 'viem'
 import { Button } from '@/components/ui/button'
-import { SHM_CLAIM_CONTRACT_ADDRESS, SHM_TOKEN_ADDRESS, shmAbi } from '@/lib/web3/contracts'
+import { SHM_CLAIM_CONTRACT_ADDRESS, SHM_TOKEN_ADDRESS, shmAbi, shmClaimAbi } from '@/lib/web3/contracts'
 import { MultiplierSection } from '@/components/multiplier-section'
 import { ProtocolStats } from '@/components/protocol-stats'
 import { RigStatusCard } from '@/components/rig-status-card'
@@ -31,6 +31,8 @@ export function MiningDashboard() {
   const [claimed, setClaimed] = useState<number | null>(null)
   const [shmError, setShmError] = useState<string | null>(null)
   const rewardPerSecond = rewardPerCycle / 86400
+  const { writeContract, data: claimHash, isPending: isClaimPending } = useWriteContract()
+  const { isLoading: isClaimConfirming, isSuccess: isClaimConfirmed } = useWaitForTransactionReceipt({ hash: claimHash })
   useEffect(() => {
     if (claimed === null) return
     const id = window.setTimeout(() => setClaimed(null), 5000)
@@ -42,8 +44,22 @@ export function MiningDashboard() {
   const isBase = chainId === 8453
   const accrued = cycle.status === 'claimable' ? rewardPerCycle : rewardPerCycle * cycle.progress
 
-  function claimShm() {
-    setShmError(SHM_CLAIM_CONTRACT_ADDRESS ? 'Public claims are waiting for a server-signed reward proof.' : 'Public SHM claims are not enabled until the claim contract is deployed.')
+  async function claimShm() {
+    if (!address || !isBase || !SHM_CLAIM_CONTRACT_ADDRESS) {
+      setShmError('Public SHM claims are not enabled until the claim contract is deployed.')
+      return
+    }
+    setShmError(null)
+    try {
+      const amount = accrued.toFixed(6)
+      const nonce = Math.floor(Date.now() / 1000)
+      const proofResponse = await fetch('/api/rewards/proof', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ walletAddress: address, chainId: 8453, amount, nonce, expiresAt: Math.floor(Date.now() / 1000) + 600 }) })
+      const proof = await proofResponse.json() as { error?: string; amountWei?: string; nonce?: string; expiresAt?: number; signature?: `0x${string}` }
+      if (!proofResponse.ok || !proof.amountWei || !proof.nonce || !proof.expiresAt || !proof.signature) throw new Error(proof.error ?? 'Reward proof unavailable.')
+      writeContract({ address: SHM_CLAIM_CONTRACT_ADDRESS, abi: shmClaimAbi, functionName: 'claim', args: [BigInt(proof.amountWei), BigInt(proof.nonce), BigInt(proof.expiresAt), proof.signature], chainId: 8453 })
+    } catch (error) {
+      setShmError(error instanceof Error ? error.message.slice(0, 180) : 'Unable to prepare the SHM claim.')
+    }
   }
 
   return (
@@ -61,7 +77,7 @@ export function MiningDashboard() {
         </div>
       )}
 
-      <section className="rounded-2xl border border-amber-300/20 bg-amber-300/[0.045] p-4" aria-labelledby="shm-onchain-title"><div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"><div><p id="shm-onchain-title" className="text-xs font-bold uppercase tracking-[0.18em] text-amber-200">SHM on Base</p><p className="mt-1 text-sm text-slate-300">On-chain balance: <strong className="font-mono text-white">{shmBalance !== undefined ? formatUnits(shmBalance, 18) : '—'} SHM</strong></p><p className="mt-1 text-[11px] text-slate-400">Mining rate: <strong className="font-mono text-cyan-200">{rewardPerSecond.toFixed(8)} SHM/sec</strong></p><p className="mt-1 text-[11px] text-slate-500">{!isBase ? 'Switch your wallet to Base Mainnet to read SHM.' : SHM_CLAIM_CONTRACT_ADDRESS ? 'Public claim contract configured; reward proof service is still being connected.' : 'Public claim contract is not deployed yet. Rewards remain visible in-app and no wallet transaction is triggered.'}</p></div>{!isBase ? <Button type="button" onClick={() => switchChain({ chainId: 8453 })} disabled={isSwitchingChain} className="min-h-11 shrink-0 rounded-xl bg-cyan-300 font-bold text-slate-950 hover:bg-cyan-200">{isSwitchingChain ? 'Switching…' : 'Switch to Base'}</Button> : <Button type="button" onClick={claimShm} disabled={!address || Boolean(SHM_CLAIM_CONTRACT_ADDRESS)} className="min-h-11 shrink-0 rounded-xl bg-amber-300 font-bold text-slate-950 hover:bg-amber-200">{SHM_CLAIM_CONTRACT_ADDRESS ? 'Awaiting reward proof' : 'Claim coming soon'}</Button>}</div>{shmError && <p role="alert" className="mt-3 rounded-lg border border-red-300/20 bg-red-300/[0.06] px-3 py-2 text-[11px] text-red-200">{shmError}</p>}</section>
+      <section className="rounded-2xl border border-amber-300/20 bg-amber-300/[0.045] p-4" aria-labelledby="shm-onchain-title"><div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"><div><p id="shm-onchain-title" className="text-xs font-bold uppercase tracking-[0.18em] text-amber-200">SHM on Base</p><p className="mt-1 text-sm text-slate-300">On-chain balance: <strong className="font-mono text-white">{shmBalance !== undefined ? formatUnits(shmBalance, 18) : '—'} SHM</strong></p><p className="mt-1 text-[11px] text-slate-400">Mining rate: <strong className="font-mono text-cyan-200">{rewardPerSecond.toFixed(8)} SHM/sec</strong></p><p className="mt-1 text-[11px] text-slate-500">{!isBase ? 'Switch your wallet to Base Mainnet to read SHM.' : SHM_CLAIM_CONTRACT_ADDRESS ? 'Public claim contract configured; reward proof service is still being connected.' : 'Public claim contract is not deployed yet. Rewards remain visible in-app and no wallet transaction is triggered.'}</p></div>{!isBase ? <Button type="button" onClick={() => switchChain({ chainId: 8453 })} disabled={isSwitchingChain} className="min-h-11 shrink-0 rounded-xl bg-cyan-300 font-bold text-slate-950 hover:bg-cyan-200">{isSwitchingChain ? 'Switching…' : 'Switch to Base'}</Button> : <Button type="button" onClick={claimShm} disabled={!address || !SHM_CLAIM_CONTRACT_ADDRESS || isClaimPending || isClaimConfirming} className="min-h-11 shrink-0 rounded-xl bg-amber-300 font-bold text-slate-950 hover:bg-amber-200">{isClaimPending ? 'Confirm in wallet…' : isClaimConfirming ? 'Confirming…' : isClaimConfirmed ? 'SHM claimed' : SHM_CLAIM_CONTRACT_ADDRESS ? 'Claim SHM' : 'Claim coming soon'}</Button>}</div>{shmError && <p role="alert" className="mt-3 rounded-lg border border-red-300/20 bg-red-300/[0.06] px-3 py-2 text-[11px] text-red-200">{shmError}</p>}</section>
 
       {claimed !== null && (
         <div
