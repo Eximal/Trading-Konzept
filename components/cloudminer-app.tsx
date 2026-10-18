@@ -167,8 +167,8 @@ export function CloudMinerApp() {
     <div className="min-h-dvh overflow-x-hidden bg-[#0b0f17] text-slate-100">
       <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_50%_-10%,rgba(34,211,238,0.12),transparent_36%),radial-gradient(circle_at_90%_55%,rgba(74,222,128,0.06),transparent_28%)]" />
       <header className="sticky top-0 z-30 border-b border-white/[0.07] bg-[#0b0f17]/85 backdrop-blur-xl">
-        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-3 px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center gap-3">
+        <div className="mx-auto flex min-h-16 max-w-7xl items-center justify-between gap-2 px-3 sm:gap-3 sm:px-6 lg:px-8">
+          <div className="flex min-w-0 items-center gap-2.5 sm:gap-3">
             <div className="flex size-9 items-center justify-center rounded-xl border border-cyan-300/25 bg-cyan-300/10 text-cyan-300 shadow-[0_0_28px_rgba(34,211,238,0.16)]">
               <Pickaxe className="size-5" aria-hidden="true" />
             </div>
@@ -183,7 +183,7 @@ export function CloudMinerApp() {
               return <button key={item.label} type="button" onClick={() => { setActiveView(item.label); setMobileNavOpen(false) }} className={`flex shrink-0 items-center gap-1.5 rounded-lg px-2.5 py-2 text-[11px] font-semibold transition ${activeView === item.label ? 'bg-white/10 text-white' : 'text-slate-500 hover:text-slate-200'}`}><Icon className="size-3.5" aria-hidden="true" />{item.label}</button>
             })}
           </nav>
-          <UniversalClock />
+          <div className="hidden min-w-0 md:block"><UniversalClock /></div>
           <div className="flex items-center gap-2">
             <button
               type="button"
@@ -202,8 +202,8 @@ export function CloudMinerApp() {
       </header>
       {mobileNavOpen && <div className="sticky top-16 z-50 max-h-[min(45vh,20rem)] overflow-y-auto border-b border-white/[0.07] bg-[#111722]/95 px-4 py-3 shadow-xl backdrop-blur-xl xl:hidden"><nav className="grid grid-cols-2 gap-2 sm:grid-cols-3" aria-label="Expanded mobile navigation">{navItems.map((item) => { const Icon = item.icon; return <button key={item.label} type="button" onClick={() => { setActiveView(item.label); setMobileNavOpen(false) }} className={`flex min-h-11 items-center gap-2 rounded-xl px-3 text-left text-xs font-semibold ${activeView === item.label ? 'bg-cyan-300/10 text-cyan-200' : 'text-slate-400'}`}><Icon className="size-4" aria-hidden="true" />{item.label}</button> })}</nav></div>}
 
-      <main className="relative mx-auto min-w-0 max-w-6xl px-4 pb-40 pt-7 sm:px-6 sm:pb-32 lg:px-8 lg:pb-12">
-        <div className="mb-7 flex items-end justify-between gap-4">
+      <main className="relative mx-auto min-w-0 max-w-7xl px-3 pb-[calc(6rem+env(safe-area-inset-bottom))] pt-5 sm:px-6 sm:pb-32 sm:pt-7 lg:px-8 lg:pb-12">
+        <div className="mb-6 flex flex-col gap-4 sm:mb-7 sm:flex-row sm:items-end sm:justify-between sm:gap-4">
           <div>
             <p className="mb-2 flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.25em] text-cyan-300"><span className="size-1.5 rounded-full bg-cyan-300 shadow-[0_0_10px_currentColor]" />Protocol online</p>
             <h1 className="text-2xl font-black tracking-tight text-white sm:text-3xl">Your mining command center</h1>
@@ -227,7 +227,7 @@ export function CloudMinerApp() {
         {activeView === 'Governance' && <GovernanceView balance={balance} />}
       </main>
 
-      <nav className="fixed inset-x-4 bottom-4 z-30 flex items-center justify-between gap-1 rounded-2xl border border-white/[0.1] bg-[#111722]/95 p-2 shadow-2xl backdrop-blur-xl xl:hidden" aria-label="Mobile navigation">
+      <nav className="fixed inset-x-3 bottom-3 z-30 flex items-center justify-between gap-1 rounded-2xl border border-white/[0.1] bg-[#111722]/95 p-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] shadow-2xl backdrop-blur-xl sm:inset-x-auto sm:bottom-4 sm:left-1/2 sm:w-[min(30rem,calc(100vw-2rem))] sm:-translate-x-1/2 xl:hidden" aria-label="Mobile navigation">
         {navItems.slice(0, 3).map((item) => { const Icon = item.icon; return <button key={item.label} type="button" onClick={() => { setActiveView(item.label); setMobileNavOpen(false) }} className={`flex min-h-11 flex-1 flex-col items-center justify-center gap-1 rounded-xl px-1 py-1 text-[9px] font-semibold ${activeView === item.label ? 'bg-cyan-300/10 text-cyan-300' : 'text-slate-500'}`}><Icon className="size-4" aria-hidden="true" />{item.label}</button> })}
         <button type="button" onClick={() => setMobileNavOpen((open) => !open)} className={`flex min-h-11 flex-1 flex-col items-center justify-center gap-1 rounded-xl px-1 py-1 text-[9px] font-semibold ${mobileNavOpen || !navItems.slice(0, 3).some((item) => item.label === activeView) ? 'bg-cyan-300/10 text-cyan-300' : 'text-slate-500'}`} aria-expanded={mobileNavOpen}><Menu className="size-4" aria-hidden="true" />More</button>
       </nav>
