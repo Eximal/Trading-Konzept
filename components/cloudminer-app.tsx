@@ -25,6 +25,8 @@ import {
   Store,
   Wallet,
   UserRound,
+  Users,
+  GraduationCap,
   Search,
   ServerCog,
   Blocks,
@@ -41,6 +43,8 @@ import { MinerOsScene } from '@/components/miner-os-scene'
 import { NftVault } from '@/components/nft-vault'
 import { MiningDashboard } from '@/components/mining-dashboard'
 import { DevicePreferences } from '@/components/device-preferences'
+import { TeamHubView } from '@/components/team-hub-view'
+import { StudentLabView } from '@/components/student-lab-view'
 
 const BRATE_TOKEN_ADDRESS = '0xE0CB06A00524180fFbAE005d1010531b99e0A254' as const
 const brateTokenAbi = [
@@ -70,6 +74,8 @@ const navItems = [
   { label: 'Ecosystem', icon: Globe2 },
   { label: 'CloudChain', icon: Blocks },
   { label: 'Governance', icon: Vote },
+  { label: 'Team Hub', icon: Users },
+  { label: 'Student Lab', icon: GraduationCap },
 ]
 
 function formatTokens(value: number) {
@@ -206,8 +212,8 @@ export function CloudMinerApp() {
         <div className="mb-6 flex flex-col gap-4 sm:mb-7 sm:flex-row sm:items-end sm:justify-between sm:gap-4">
           <div>
             <p className="mb-2 flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.25em] text-cyan-300"><span className="size-1.5 rounded-full bg-cyan-300 shadow-[0_0_10px_currentColor]" />CloudMiner OS</p>
-            <h1 className="text-2xl font-black tracking-tight text-white sm:text-3xl">Your mining command center</h1>
-            <p className="mt-2 max-w-xl text-sm text-slate-500">One clear view for your rig, participation points, and official SHM on Base.</p>
+            <h1 className="text-2xl font-black tracking-tight text-white sm:text-3xl">{activeView === 'Team Hub' ? 'Your crew workspace' : activeView === 'Student Lab' ? 'Learn the chain, one block at a time' : 'Your mining command center'}</h1>
+            <p className="mt-2 max-w-xl text-sm text-slate-500">{activeView === 'Team Hub' ? 'Coordinate verified participation with your team and keep progress visible.' : activeView === 'Student Lab' ? 'Understand wallets, blocks, and responsible participation before you scale.' : 'One clear view for your rig, participation points, and official SHM on Base.'}</p>
           </div>
           <div className="hidden items-center gap-2 text-right sm:flex"><div className="size-2 rounded-full bg-emerald-400 shadow-[0_0_12px_#4ade80]" /><span className="text-xs text-slate-400">Core systems online</span></div>
         </div>
@@ -225,6 +231,8 @@ export function CloudMinerApp() {
         {activeView === 'Ecosystem' && <EcosystemView />}
         {activeView === 'CloudChain' && <CloudChainView />}
         {activeView === 'Governance' && <GovernanceView balance={balance} />}
+        {activeView === 'Team Hub' && <TeamHubView address={address} isConnected={isConnected} totalHashrate={totalHashrate} isMining={isMining} />}
+        {activeView === 'Student Lab' && <StudentLabView isMining={isMining} setActiveView={setActiveView} />}
       </main>
 
       <nav className="fixed inset-x-3 bottom-3 z-30 flex items-center justify-between gap-1 rounded-2xl border border-white/[0.1] bg-[#111722]/95 p-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] shadow-2xl backdrop-blur-xl sm:inset-x-auto sm:bottom-4 sm:left-1/2 sm:w-[min(30rem,calc(100vw-2rem))] sm:-translate-x-1/2 xl:hidden" aria-label="Mobile navigation">
