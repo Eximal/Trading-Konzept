@@ -45,6 +45,7 @@ import { MiningDashboard } from '@/components/mining-dashboard'
 import { DevicePreferences } from '@/components/device-preferences'
 import { TeamHubView } from '@/components/team-hub-view'
 import { StudentLabView } from '@/components/student-lab-view'
+import { copy, detectLocale, type AppLocale } from '@/lib/i18n'
 
 const BRATE_TOKEN_ADDRESS = '0xE0CB06A00524180fFbAE005d1010531b99e0A254' as const
 const brateTokenAbi = [
@@ -101,6 +102,7 @@ export function CloudMinerApp() {
   const brateSupply = brateTotalSupply === undefined ? null : formatUnits(brateTotalSupply, tokenDecimals)
   const brateOwnerLabel = brateOwner ? `${brateOwner.slice(0, 6)}...${brateOwner.slice(-4)}` : 'Protected owner'
   const [activeView, setActiveView] = useState('Dashboard')
+  const [locale, setLocale] = useState<AppLocale>('en')
   const [mobileNavOpen, setMobileNavOpen] = useState(false)
   const [isMining, setIsMining] = useState(false)
   const [tokens, setTokens] = useState(0)
@@ -117,6 +119,20 @@ export function CloudMinerApp() {
   useEffect(() => {
     setInviteLink(`${window.location.origin}?ref=JAKARAL-2024`)
   }, [])
+
+  useEffect(() => {
+    try {
+      const saved = window.localStorage.getItem('cloudminer-device-preferences')
+      setLocale(saved ? detectLocale((JSON.parse(saved) as { locale?: string }).locale ?? navigator.language) : detectLocale(navigator.language))
+    } catch {
+      setLocale(detectLocale(navigator.language))
+    }
+    const onLocaleChange = (event: Event) => setLocale(detectLocale((event as CustomEvent<string>).detail))
+    window.addEventListener('cloudminer:locale-change', onLocaleChange)
+    return () => window.removeEventListener('cloudminer:locale-change', onLocaleChange)
+  }, [])
+
+  const labels = copy[locale]
 
   const totalHashrate = useMemo(() => {
     const base = 10
@@ -186,7 +202,7 @@ export function CloudMinerApp() {
           <nav className="hidden min-w-0 max-w-[56vw] items-center gap-1 overflow-x-auto rounded-xl border border-white/[0.07] bg-white/[0.025] p-1 xl:flex" aria-label="Primary navigation">
             {navItems.map((item) => {
               const Icon = item.icon
-              return <button key={item.label} type="button" onClick={() => { setActiveView(item.label); setMobileNavOpen(false) }} className={`flex shrink-0 items-center gap-1.5 rounded-lg px-2.5 py-2 text-[11px] font-semibold transition ${activeView === item.label ? 'bg-white/10 text-white' : 'text-slate-500 hover:text-slate-200'}`}><Icon className="size-3.5" aria-hidden="true" />{item.label}</button>
+              return <button key={item.label} type="button" onClick={() => { setActiveView(item.label); setMobileNavOpen(false) }} className={`flex shrink-0 items-center gap-1.5 rounded-lg px-2.5 py-2 text-[11px] font-semibold transition ${activeView === item.label ? 'bg-white/10 text-white' : 'text-slate-500 hover:text-slate-200'}`}><Icon className="size-3.5" aria-hidden="true" />{labels.nav[navItems.indexOf(item)]}</button>
             })}
           </nav>
           <div className="hidden min-w-0 md:block"><UniversalClock /></div>
@@ -198,22 +214,22 @@ export function CloudMinerApp() {
               aria-label="CloudMiner installieren"
             >
               <Download className="size-3.5" aria-hidden="true" />
-              <span className="hidden sm:inline">Install app</span>
+              <span className="hidden sm:inline">{labels.install}</span>
             </button>
             <DevicePreferences />
             <div className="block"><WalletButton /></div>
-            <button type="button" onClick={() => setMobileNavOpen((open) => !open)} className="flex size-10 shrink-0 items-center justify-center rounded-xl border border-white/[0.08] text-slate-400 xl:hidden" aria-label={mobileNavOpen ? 'Close menu' : 'Open menu'} aria-expanded={mobileNavOpen}><Menu className="size-5" /></button>
+            <button type="button" onClick={() => setMobileNavOpen((open) => !open)} className="flex size-10 shrink-0 items-center justify-center rounded-xl border border-white/[0.08] text-slate-400 xl:hidden" aria-label={mobileNavOpen ? labels.closeMenu : labels.openMenu} aria-expanded={mobileNavOpen}><Menu className="size-5" /></button>
           </div>
         </div>
       </header>
-      {mobileNavOpen && <div className="sticky top-16 z-50 max-h-[min(45vh,20rem)] overflow-y-auto border-b border-white/[0.07] bg-[#111722]/95 px-4 py-3 shadow-xl backdrop-blur-xl xl:hidden"><nav className="grid grid-cols-2 gap-2 sm:grid-cols-3" aria-label="Expanded mobile navigation">{navItems.map((item) => { const Icon = item.icon; return <button key={item.label} type="button" onClick={() => { setActiveView(item.label); setMobileNavOpen(false) }} className={`flex min-h-11 items-center gap-2 rounded-xl px-3 text-left text-xs font-semibold ${activeView === item.label ? 'bg-cyan-300/10 text-cyan-200' : 'text-slate-400'}`}><Icon className="size-4" aria-hidden="true" />{item.label}</button> })}</nav></div>}
+      {mobileNavOpen && <div className="sticky top-16 z-50 max-h-[min(45vh,20rem)] overflow-y-auto border-b border-white/[0.07] bg-[#111722]/95 px-4 py-3 shadow-xl backdrop-blur-xl xl:hidden"><nav className="grid grid-cols-2 gap-2 sm:grid-cols-3" aria-label="Expanded mobile navigation">{navItems.map((item) => { const Icon = item.icon; return <button key={item.label} type="button" onClick={() => { setActiveView(item.label); setMobileNavOpen(false) }} className={`flex min-h-11 items-center gap-2 rounded-xl px-3 text-left text-xs font-semibold ${activeView === item.label ? 'bg-cyan-300/10 text-cyan-200' : 'text-slate-400'}`}><Icon className="size-4" aria-hidden="true" />{labels.nav[navItems.indexOf(item)]}</button> })}</nav></div>}
 
       <main className="relative mx-auto min-w-0 max-w-7xl px-3 pb-[calc(6rem+env(safe-area-inset-bottom))] pt-5 sm:px-6 sm:pb-32 sm:pt-7 lg:px-8 lg:pb-12">
         <div className="mb-6 flex flex-col gap-4 sm:mb-7 sm:flex-row sm:items-end sm:justify-between sm:gap-4">
           <div>
-            <p className="mb-2 flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.25em] text-cyan-300"><span className="size-1.5 rounded-full bg-cyan-300 shadow-[0_0_10px_currentColor]" />CloudMiner OS</p>
-            <h1 className="text-2xl font-black tracking-tight text-white sm:text-3xl">{activeView === 'Team Hub' ? 'Your crew workspace' : activeView === 'Student Lab' ? 'Learn the chain, one block at a time' : 'Your mining command center'}</h1>
-            <p className="mt-2 max-w-xl text-sm text-slate-500">{activeView === 'Team Hub' ? 'Coordinate verified participation with your team and keep progress visible.' : activeView === 'Student Lab' ? 'Understand wallets, blocks, and responsible participation before you scale.' : 'One clear view for your rig, participation points, and official SHM on Base.'}</p>
+            <p className="mb-2 flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.25em] text-cyan-300"><span className="size-1.5 rounded-full bg-cyan-300 shadow-[0_0_10px_currentColor]" />{labels.cloudminerOs}</p>
+            <h1 className="text-2xl font-black tracking-tight text-white sm:text-3xl">{activeView === 'Team Hub' ? labels.teamTitle : activeView === 'Student Lab' ? labels.studentTitle : activeView === 'Dashboard' ? labels.dashboardTitle : labels.nav[navItems.findIndex((item) => item.label === activeView)]}</h1>
+            <p className="mt-2 max-w-xl text-sm text-slate-500">{activeView === 'Team Hub' ? labels.teamDescription : activeView === 'Student Lab' ? labels.studentDescription : labels.dashboardDescription}</p>
           </div>
           <div className="hidden items-center gap-2 text-right sm:flex"><div className="size-2 rounded-full bg-emerald-400 shadow-[0_0_12px_#4ade80]" /><span className="text-xs text-slate-400">Core systems online</span></div>
         </div>
@@ -221,7 +237,7 @@ export function CloudMinerApp() {
         {notice && <div role="status" className="mb-5 flex items-center justify-between rounded-xl border border-cyan-300/20 bg-cyan-300/[0.07] px-4 py-3 text-sm text-cyan-100"><span>{notice}</span><button type="button" onClick={() => setNotice('')} className="text-cyan-300">Dismiss</button></div>}
 
         {activeView === 'Music' && <MusicView />}
-  {activeView === 'Dashboard' && <DashboardView isMining={isMining} setIsMining={setIsMining} tokens={tokens} balance={balance} totalHashrate={totalHashrate} claimRewards={claimRewards} setActiveView={setActiveView} dropClaimed={dropClaimed} claimDrop={() => { setDropClaimed(true); setBalance((current) => current + 10); setNotice('Daily utility drop claimed: +10 CMR participation points.') }} inviteLink={inviteLink} inviteCopied={inviteCopied} copyInviteLink={copyInviteLink} brateBalance={brateBalance} brateSupply={brateSupply} brateSymbol={brateSymbol} brateOwnerLabel={brateOwnerLabel} isBrateLoading={isBrateLoading} isBrateError={isBrateError} chainId={chainId} />}
+  {activeView === 'Dashboard' && <div className="space-y-6"><MiningDashboard /><section className="grid gap-3 sm:grid-cols-2"><button type="button" onClick={() => setActiveView('Team Hub')} className="min-h-14 rounded-2xl border border-cyan-300/20 bg-cyan-300/[0.04] px-4 py-3 text-left text-sm font-semibold text-cyan-100">Open team workspace<span className="mt-1 block text-xs font-normal text-slate-500">Preview collaboration tools and current integration status</span></button><button type="button" onClick={() => setActiveView('Student Lab')} className="min-h-14 rounded-2xl border border-emerald-300/20 bg-emerald-300/[0.04] px-4 py-3 text-left text-sm font-semibold text-emerald-100">Continue learning<span className="mt-1 block text-xs font-normal text-slate-500">Blockchain basics and a session-only lesson checklist</span></button></section><details className="rounded-2xl border border-white/10 bg-white/[0.02] p-4"><summary className="min-h-11 cursor-pointer py-3 text-sm font-semibold text-slate-300">Open simulated dashboard preview</summary><p className="mb-4 text-xs leading-5 text-amber-200">Preview only: local balances, rig upgrades, daily drops, referral rewards, and withdrawal requests are not real token activity and do not persist.</p><DashboardView isMining={isMining} setIsMining={setIsMining} tokens={tokens} balance={balance} totalHashrate={totalHashrate} claimRewards={claimRewards} setActiveView={setActiveView} dropClaimed={dropClaimed} claimDrop={() => { setDropClaimed(true); setBalance((current) => current + 10); setNotice('Preview only: simulated daily points added.') }} inviteLink={inviteLink} inviteCopied={inviteCopied} copyInviteLink={copyInviteLink} brateBalance={brateBalance} brateSupply={brateSupply} brateSymbol={brateSymbol} brateOwnerLabel={brateOwnerLabel} isBrateLoading={isBrateLoading} isBrateError={isBrateError} chainId={chainId} /></details></div>}
         {activeView === 'Shop' && <ShopView balance={balance} ownedUpgrades={ownedUpgrades} buyUpgrade={buyUpgrade} />}
         {activeView === 'NFT Vault' && <NftVault />}
         {activeView === 'Wallet' && <WalletView balance={balance} amount={withdrawalAmount} setAmount={setWithdrawalAmount} address={targetAddress} setAddress={setTargetAddress} network={network} setNetwork={setNetwork} withdraw={withdraw} />}
@@ -231,13 +247,13 @@ export function CloudMinerApp() {
         {activeView === 'Ecosystem' && <EcosystemView />}
         {activeView === 'CloudChain' && <CloudChainView />}
         {activeView === 'Governance' && <GovernanceView balance={balance} />}
-        {activeView === 'Team Hub' && <TeamHubView address={address} isConnected={isConnected} totalHashrate={totalHashrate} isMining={isMining} />}
+        {activeView === 'Team Hub' && <TeamHubView address={address} isConnected={isConnected} isMining={isMining} />}
         {activeView === 'Student Lab' && <StudentLabView isMining={isMining} setActiveView={setActiveView} />}
       </main>
 
       <nav className="fixed inset-x-3 bottom-3 z-30 flex items-center justify-between gap-1 rounded-2xl border border-white/[0.1] bg-[#111722]/95 p-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] shadow-2xl backdrop-blur-xl sm:inset-x-auto sm:bottom-4 sm:left-1/2 sm:w-[min(30rem,calc(100vw-2rem))] sm:-translate-x-1/2 xl:hidden" aria-label="Mobile navigation">
-        {navItems.slice(0, 3).map((item) => { const Icon = item.icon; return <button key={item.label} type="button" onClick={() => { setActiveView(item.label); setMobileNavOpen(false) }} className={`flex min-h-11 flex-1 flex-col items-center justify-center gap-1 rounded-xl px-1 py-1 text-[9px] font-semibold ${activeView === item.label ? 'bg-cyan-300/10 text-cyan-300' : 'text-slate-500'}`}><Icon className="size-4" aria-hidden="true" />{item.label}</button> })}
-        <button type="button" onClick={() => setMobileNavOpen((open) => !open)} className={`flex min-h-11 flex-1 flex-col items-center justify-center gap-1 rounded-xl px-1 py-1 text-[9px] font-semibold ${mobileNavOpen || !navItems.slice(0, 3).some((item) => item.label === activeView) ? 'bg-cyan-300/10 text-cyan-300' : 'text-slate-500'}`} aria-expanded={mobileNavOpen}><Menu className="size-4" aria-hidden="true" />More</button>
+        {navItems.slice(0, 3).map((item) => { const Icon = item.icon; return <button key={item.label} type="button" onClick={() => { setActiveView(item.label); setMobileNavOpen(false) }} className={`flex min-h-11 flex-1 flex-col items-center justify-center gap-1 rounded-xl px-1 py-1 text-[9px] font-semibold ${activeView === item.label ? 'bg-cyan-300/10 text-cyan-300' : 'text-slate-500'}`}><Icon className="size-4" aria-hidden="true" />{labels.nav[navItems.indexOf(item)]}</button> })}
+        <button type="button" onClick={() => setMobileNavOpen((open) => !open)} className={`flex min-h-11 flex-1 flex-col items-center justify-center gap-1 rounded-xl px-1 py-1 text-[9px] font-semibold ${mobileNavOpen || !navItems.slice(0, 3).some((item) => item.label === activeView) ? 'bg-cyan-300/10 text-cyan-300' : 'text-slate-500'}`} aria-expanded={mobileNavOpen}><Menu className="size-4" aria-hidden="true" />{labels.more}</button>
       </nav>
     </div>
   )
