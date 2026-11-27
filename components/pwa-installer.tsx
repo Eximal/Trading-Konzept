@@ -84,7 +84,7 @@ export function PwaInstaller() {
             </p>
             <p className="mt-2 text-[11px] text-muted-foreground">Die Installation funktioniert über HTTPS und benötigt keine zusätzliche Desktop-Software.</p>
           </div>
-          <button type="button" onClick={dismiss} aria-label="Installationshinweis schließen" className="rounded-md p-1 text-muted-foreground transition-colors hover:text-foreground">
+          <button type="button" onClick={dismiss} aria-label="Installationshinweis schließen" className="flex size-11 shrink-0 items-center justify-center rounded-xl text-muted-foreground transition-colors hover:bg-white/5 hover:text-foreground">
             <X className="size-4" aria-hidden="true" />
           </button>
         </div>
@@ -101,7 +101,7 @@ export function PwaInstaller() {
           <Download className="size-4" aria-hidden="true" />
         </span>
         <div className="min-w-0 flex-1">
-          <p className="text-sm font-semibold text-[#f0f6fc]">Install JKU Miner</p>
+          <p className="text-sm font-semibold text-[#f0f6fc]">Install CloudMiner</p>
           <p className="mt-0.5 text-xs text-muted-foreground">
             Add the rig to your home screen for offline access and faster cycles.
           </p>
@@ -115,7 +115,7 @@ export function PwaInstaller() {
               setInstallEvent(null)
               setVisible(false)
             }}
-            className="mt-2.5 h-8 rounded-lg bg-[#238636] px-3 text-xs font-semibold text-[#f0f6fc] transition-colors hover:bg-[#2ea043]"
+            className="mt-2.5 min-h-11 rounded-lg bg-[#238636] px-4 text-sm font-semibold text-[#f0f6fc] transition-colors hover:bg-[#2ea043]"
           >
             Install app
           </button>
@@ -124,7 +124,7 @@ export function PwaInstaller() {
           type="button"
           onClick={dismiss}
           aria-label="Dismiss install prompt"
-          className="rounded-md p-1 text-muted-foreground transition-colors hover:text-foreground"
+          className="flex size-11 shrink-0 items-center justify-center rounded-xl text-muted-foreground transition-colors hover:bg-white/5 hover:text-foreground"
         >
           <X className="size-4" aria-hidden="true" />
         </button>

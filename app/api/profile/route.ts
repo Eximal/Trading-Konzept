@@ -96,14 +96,12 @@ export { AVATARS }
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
-export const preferredRegion = 'home'
 export const maxDuration = 10
 export const fetchCache = 'force-no-store'
 export const dynamicParams = true
 export const generateStaticParams = undefined
 export const segmentConfig = undefined
 export const experimental_ppr = false
-export const preferredRegionRuntime = 'nodejs'
 export const unstable_expiration = 0
 export const unstable_allowDynamic = true
 export const unstable_skipMiddlewareUrlNormalize = false

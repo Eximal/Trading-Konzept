@@ -11,27 +11,27 @@ export const metadata: Metadata = {
     template: '%s | CloudMiner',
   },
   description:
-    'CloudMiner is a transparent Proof-of-Participation protocol for community points, secure utility design, and a future MMORPG ecosystem.',
-  applicationName: 'JKU Miner',
+    'Explore CloudMiner, a wallet-connected participation dashboard with blockchain learning tools, device-aware controls, and community features.',
+  applicationName: 'CloudMiner',
   manifest: '/manifest.json',
   appleWebApp: {
     capable: true,
-    title: 'JKU Miner',
+    title: 'CloudMiner',
     statusBarStyle: 'black-translucent',
   },
   openGraph: {
     type: 'website',
     url: 'https://miner.jkuspot.com',
-    siteName: 'JKU Mining Protocol',
-    title: 'JKU Mining Protocol',
+    siteName: 'CloudMiner',
+    title: 'CloudMiner',
     description:
-      'Run multi-chain mining cycles and boost your hashrate with $JKU, $ENT and NFT holdings.',
+      'Wallet-connected blockchain participation, on-chain token information, and guided learning tools for the CloudMiner community.',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'JKU Mining Protocol',
+    title: 'CloudMiner',
     description:
-      'Run multi-chain mining cycles and boost your hashrate with $JKU, $ENT and NFT holdings.',
+      'Wallet-connected blockchain participation, on-chain token information, and guided learning tools for the CloudMiner community.',
   },
   generator: 'v0.app',
   icons: {
@@ -46,7 +46,7 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   colorScheme: 'dark',
-  themeColor: '#0d1117',
+  themeColor: '#0b0f17',
   width: 'device-width',
   initialScale: 1,
   maximumScale: 5,
